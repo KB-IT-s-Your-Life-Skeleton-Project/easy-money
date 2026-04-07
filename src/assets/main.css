@@ -1,0 +1,23 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+
+/* 앱 전체에 Pretendard 글꼴 적용*/
+body,
+#app,
+button,
+input,
+textarea,
+select {
+  font-family: "Pretendard", sans-serif;
+}
+/* 
+변수로 색깔 사용!
+button { background:var(--color-yellow-light);
+*/
+:root {
+  --color-yellow-light: #ffbc00;
+  --color-yellow-dark: #fcaf17;
+  --color-white: white;
+  --color-black: black;
+  --color-income: #00bf64;
+  --color-expense: #ff0000;
+}

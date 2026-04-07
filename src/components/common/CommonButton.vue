@@ -13,7 +13,7 @@ defineProps({
 
 <style scoped>
 button {
-  background-color: #ffbc00;
+  background-color: var(--color-yellow-dark);
   border-radius: 10px;
   border: none;
   color: white;
