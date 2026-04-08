@@ -20,4 +20,5 @@ button { background:var(--color-yellow-light);
   --color-black: black;
   --color-income: #00bf64;
   --color-expense: #ff0000;
+  --color-gray: #d9d9d9;
 }
