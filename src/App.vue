@@ -1,6 +1,6 @@
 <script setup>
-import Header from "./components/Header.vue";
-import TabBar from "./components/TabBar.vue";
+import Header from './components/Header.vue';
+import TabBar from './components/TabBar.vue';
 const isVisible = false;
 </script>
 
