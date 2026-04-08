@@ -1,7 +1,8 @@
 <script setup>
-import LoginView from './views/LoginView.vue';
+import Header from './components/Header.vue';
 </script>
 
 <template>
-  <LoginView />
+  <Header v-if="false" />
+  <router-view></router-view>
 </template>
