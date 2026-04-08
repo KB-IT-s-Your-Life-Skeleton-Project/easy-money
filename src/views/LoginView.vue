@@ -55,7 +55,10 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import CommonButton from '@/components/common/CommonButton.vue';
+
+const router = useRouter();
 
 const email = ref('');
 const password = ref('');
@@ -70,6 +73,7 @@ const handleLogin = () => {
 };
 
 const goSignup = () => {
+  router.push('/signup');
   console.log('회원가입 페이지 이동');
 };
 
@@ -199,8 +203,8 @@ const goFindPassword = () => {
   border: none;
   background: transparent;
   color: #222;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
 }
 
