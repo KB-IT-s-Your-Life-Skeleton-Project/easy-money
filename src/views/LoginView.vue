@@ -85,7 +85,7 @@ const goFindPassword = () => {
 <style scoped>
 .login-page {
   min-height: 100dvh;
-  background: #f5f5f5;
+  background: #ffffff;
   display: flex;
   justify-content: center;
 }
@@ -94,7 +94,7 @@ const goFindPassword = () => {
   width: 100%;
   max-width: 430px;
   min-height: 100vh;
-  background: #f5f5f5;
+  background: #ffffff;
   padding: 48px 32px 40px;
   box-sizing: border-box;
 }
