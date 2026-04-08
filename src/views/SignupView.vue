@@ -289,7 +289,7 @@ const handleSignup = () => {
 <style scoped>
 .signup-page {
   min-height: 100dvh;
-  background: #f5f5f5;
+  background: #ffffff;
   display: flex;
   justify-content: center;
   overflow-x: hidden;
@@ -299,7 +299,7 @@ const handleSignup = () => {
   width: 100%;
   max-width: 430px;
   min-height: 100dvh;
-  background: #f5f5f5;
+  background: #ffffff;
   padding: 20px 32px 40px;
   box-sizing: border-box;
   display: flex;
