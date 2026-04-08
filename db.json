@@ -2,35 +2,39 @@
   "users": [
     {
       "id": 1,
+      "name": "test",
       "email": "test@example.com",
       "password": "test"
     },
     {
       "id": 2,
+      "name": "test",
       "email": "admin@example.com",
       "password": "admin"
     }
   ],
   "transactions": [
     {
-      "userId": 1,
+	    "userId": 1,
       "id": 1,
       "type": "income",
       "amount": 1000000,
       "date": "2026-04-01",
       "content": "월급",
       "category": "월급",
-      "memo": "4월 월급"
+      "memo": "4월 월급",
+      "isIncluded": true
     },
     {
-      "userId": 2,
+	    "userId": 2,
       "id": 2,
       "type": "expense",
       "amount": 5000,
       "date": "2026-04-02",
       "content": "점심",
       "category": "음식",
-      "memo": "칼국수"
+      "memo": "칼국수",
+      "isIncluded": true
     }
   ]
 }
