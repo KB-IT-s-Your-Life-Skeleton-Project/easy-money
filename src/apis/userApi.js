@@ -70,6 +70,7 @@ export const fetchUser = async (id) => {
  * @example updateUser(id,{email:11,password:11,name:11})
  * @example updateUser(id,{email:11,password:11})
  **/
+//TODO: 세부 로직은 store에서 작성
 export const updateUser = async (id, newData) => {
   const user = await fetchUser(id);
   const payload = { ...user, ...newData };
@@ -91,7 +92,7 @@ export const updateUser = async (id, newData) => {
  **/
 export const deleteUser = async (id) => {
   try {
-    response = await axios.delete(`${BASE_URL}/${id}`);
+    const response = await axios.delete(`${BASE_URL}/${id}`);
     if (response.status === 200) {
       return response.data;
     } else {
