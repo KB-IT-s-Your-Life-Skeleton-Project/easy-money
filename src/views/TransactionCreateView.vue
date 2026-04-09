@@ -304,13 +304,10 @@ const selectCategory = (cat) => {
       </div>
     </main>
 
-    <div class="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-md">
-      <button
-        @click="submitTransaction"
-        class="w-full py-4 bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg rounded-2xl shadow-lg active:scale-95 transition-all"
-      >
-        저장하기
-      </button>
+    <div
+      class="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-md border-t border-gray-100 flex justify-center"
+    >
+      <CommonButton text="저장하기" @click="submitTransaction" />
     </div>
   </div>
 </template>
