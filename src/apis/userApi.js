@@ -85,3 +85,19 @@ export const updateUser = async (id, newData) => {
     alert(`updateUser 호출 에러: ${err.message}`);
   }
 };
+
+/**
+ * @example deleteUser(id)
+ **/
+export const deleteUser = async (id) => {
+  try {
+    response = await axios.delete(`${BASE_URL}/${id}`);
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      ("회원 삭제 오류");
+    }
+  } catch (err) {
+    alert(`이미 삭제되었거나 삭제할 id가 잘못되었습니다. \n${err.message}`);
+  }
+};
