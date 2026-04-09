@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive } from "vue";
+import { ref, reactive } from 'vue';
 
 //TODO: api 연결 필요
 const income = ref(1000000);
@@ -21,7 +21,7 @@ const currentDate = {
   <div class="space-around">
     <div class="total">
       <span
-        >{{ income - expense > 0 ? "+" : "" }}
+        >{{ income - expense > 0 ? '+' : '' }}
         {{ (income - expense).toLocaleString() }}원</span
       >
     </div>
