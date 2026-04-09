@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import LoginView from '../views/LoginView.vue';
 import SignupView from '../views/SignupView.vue';
 import TransactionCreateView from '@/views/TransactionCreateView.vue';
+import TransactionView from '@/views/TransactionView.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -17,9 +18,14 @@ const router = createRouter({
       component: SignupView,
     },
     {
-      path: '/transation',
-      name: 'transation',
+      path: '/transation/create',
+      name: 'transation-create',
       component: TransactionCreateView,
+    },
+    {
+      path: '/transactions',
+      name: 'transactions',
+      component: TransactionView,
     },
   ],
 });

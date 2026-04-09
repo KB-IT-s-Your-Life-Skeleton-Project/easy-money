@@ -40,3 +40,14 @@ button {
   user-select: none;
   -webkit-tap-highlight-color: transparent; /* 모바일 터치 시 파란 박스 제거 */
 }
+
+/* App.vue 또는 main.css (scoped 지우기!) */
+/* 모든 요소의 스크롤바를 숨깁니다 */
+*::-webkit-scrollbar {
+  display: none !important;
+}
+
+* {
+  -ms-overflow-style: none !important; /* IE and Edge */
+  scrollbar-width: none !important; /* Firefox */
+}
