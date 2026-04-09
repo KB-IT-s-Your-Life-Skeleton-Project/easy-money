@@ -3,7 +3,7 @@
     <div class="phone-frame">
       <!-- 로그인 헤더 -->
       <header class="brand-section">
-        <div class="logo-circle">로고</div>
+        <img src="@/assets/logo.png" alt="Easy-Money 로고" class="logo-image" />
         <h1 class="brand-title">Easy-Money</h1>
       </header>
 
@@ -107,16 +107,10 @@ const goFindPassword = () => {
   margin-bottom: 88px;
 }
 
-.logo-circle {
+.logo-image {
   width: 72px;
   height: 72px;
-  border-radius: 50%;
-  background: #d9d9d9;
-  color: #222;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
+  object-fit: contain;
   flex-shrink: 0;
 }
 
@@ -217,7 +211,7 @@ const goFindPassword = () => {
     font-size: 34px;
   }
 
-  .logo-circle {
+  .logo-image {
     width: 64px;
     height: 64px;
   }
