@@ -11,6 +11,12 @@
       "name": "김현종",
       "email": "hyeon@example.com",
       "password": "admin"
+    },
+    {
+      "email": 11,
+      "password": 10,
+      "name": 1000,
+      "id": 3
     }
   ],
   "transactions": [
