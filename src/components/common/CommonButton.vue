@@ -18,8 +18,11 @@ defineEmits(['click']);
 
 <style scoped>
 button {
+  /* 배경색 */
   background-color: var(--color-yellow-dark);
-  border-radius: 10px;
+
+  /* 테두리 및 글자 스타일 */
+  border-radius: 1rem;
   border: none;
   color: rgb(0, 0, 0);
   width: 70%;
