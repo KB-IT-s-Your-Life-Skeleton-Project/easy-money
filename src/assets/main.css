@@ -1,5 +1,5 @@
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 @import 'tailwindcss';
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
 /* 앱 전체에 Pretendard 글꼴 적용*/
 body,
@@ -10,6 +10,17 @@ textarea,
 select {
   font-family: 'Pretendard', sans-serif;
 }
+
+@theme {
+  /* 테일윈드 안에서도 우리 색깔 이름을 클래스로 쓸 수 있게 등록해요! */
+  --color-yellow-light: #ffbc00;
+  --color-yellow-dark: #fcaf17;
+  --color-income: #00bf64;
+  --color-expense: #ff0000;
+
+  /* 예: class="bg-yellow-light" 로 바로 사용 가능 */
+}
+
 /* 
 변수로 색깔 사용!
 button { background:var(--color-yellow-light);
@@ -22,4 +33,10 @@ button { background:var(--color-yellow-light);
   --color-income: #00bf64;
   --color-expense: #ff0000;
   --color-gray: #d9d9d9;
+}
+
+/* 모바일 앱 느낌을 내기 위해 텍스트 드래그 방지 (선택 사항) */
+button {
+  user-select: none;
+  -webkit-tap-highlight-color: transparent; /* 모바일 터치 시 파란 박스 제거 */
 }
