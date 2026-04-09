@@ -189,7 +189,8 @@ const goFindPassword = () => {
 
 .btn-secondary {
   background: #ecd9a0;
-  color: var(--color-yellow-dark);
+  /* color: var(--color-yellow-dark); */
+  color: white;
 }
 
 .text-button {
