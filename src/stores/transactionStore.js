@@ -10,7 +10,7 @@ export const useTransactionStore = defineStore('transaction', () => {
   // 2. 액션 (Actions): 데이터를 가져오고 저장하는 함수들
 
   // 서버에서 데이터 불러오기 (처음 앱 켤 때)
-  const fetchTransactions = async () => {
+const fetchTransactions = async () => {
     try {
       const response = await axios.get(BASE_URL);
       transactions.value = response.data;

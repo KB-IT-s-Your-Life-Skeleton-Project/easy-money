@@ -1,23 +1,23 @@
-import axios from "axios";
+import axios from 'axios';
 
-const BASE_URL = "/api/transactions";
+const BASE_URL = '/api/transactions';
 
-const createTransaction = async (data) => {
+export const createTransaction = async (data) => {
   try {
     const response = await axios.post(BASE_URL, data);
     return response.data;
   } catch (e) {
-    console.log("## 저장에 오류가 발생했습니다.");
+    console.log('## 저장에 오류가 발생했습니다.');
     if (e instanceof Error) console.log(e.message);
     else console.log(e);
   }
 };
-const deleteTransaction = async (id) => {
+export const deleteTransaction = async (id) => {
   try {
     const response = await axios.delete(`${BASE_URL}/${id}`);
     return response.data;
   } catch (e) {
-    console.log("삭제 중 오류가 발생하였습니다.");
+    console.log('삭제 중 오류가 발생하였습니다.');
     if (e instanceof Error) console.log(e.message);
     else console.log(e);
   }
@@ -59,7 +59,7 @@ export const getTransactions = async (
   userId,
   { date, startDate, endDate, category = [], type } = {},
 ) => {
-  if (!userId) throw new Error("userId는 필수입니다.");
+  if (!userId) throw new Error('userId는 필수입니다.');
   try {
     const params = {};
     if (userId) {
@@ -67,8 +67,8 @@ export const getTransactions = async (
     }
     if (date) params.date = date;
     if (startDate && endDate) {
-      params["date_gte"] = startDate;
-      params["date_lte"] = endDate;
+      params['date_gte'] = startDate;
+      params['date_lte'] = endDate;
     }
     if (category.length) params.category_in = category;
     if (type) params.type = type;
