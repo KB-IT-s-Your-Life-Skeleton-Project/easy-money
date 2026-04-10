@@ -3,6 +3,7 @@ import LoginView from '../views/LoginView.vue';
 import SignupView from '../views/SignupView.vue';
 import TransactionCreateView from '@/views/TransactionCreateView.vue';
 import TransactionView from '@/views/TransactionView.vue';
+import CalendarView from '@/views/CalendarView.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -26,6 +27,11 @@ const router = createRouter({
       path: '/transactions',
       name: 'transactions',
       component: TransactionView,
+    },
+    {
+      path: '/calendar',
+      name: 'calendar',
+      component: CalendarView,
     },
   ],
 });
