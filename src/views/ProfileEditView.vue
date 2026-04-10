@@ -1,3 +1,95 @@
+<script setup>
+import { ref, nextTick, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/userStore.js';
+import CommonButton from '@/components/common/CommonButton.vue';
+import { fetchUser as apiFetchUser } from '@/apis/userApi.js';
+
+const router = useRouter();
+const userStore = useUserStore();
+
+// 1. 실제 로그인된 유저의 이름으로 초기화
+const userName = ref(userStore.loginUser?.name || '');
+const tempName = ref('');
+const isEditingName = ref(false);
+const nameInput = ref(null);
+
+const currentPassword = ref('');
+const newPassword = ref('');
+
+const goBack = () => {
+  router.back();
+};
+
+const toggleEditName = async () => {
+  tempName.value = userName.value;
+  isEditingName.value = true;
+  await nextTick();
+  nameInput.value?.focus();
+};
+
+// 2. 이름 변경 실행
+const saveName = async () => {
+  if (!isEditingName.value) return;
+
+  const trimmedName = tempName.value.trim();
+  if (trimmedName && trimmedName !== userName.value) {
+    // Store를 통해 DB 업데이트 요청
+    const isSuccess = await userStore.updateProfile({ name: trimmedName });
+
+    if (isSuccess) {
+      userName.value = trimmedName; // 화면에 보이는 이름도 변경
+      alert('이름이 성공적으로 변경되었습니다.');
+    } else {
+      alert('이름 변경에 실패했습니다.');
+    }
+  }
+  isEditingName.value = false;
+};
+
+// 3. 비밀번호 변경 실행
+const changePassword = async () => {
+  if (!currentPassword.value || !newPassword.value) {
+    alert('현재 비밀번호와 새 비밀번호를 모두 입력해주세요.');
+    return;
+  }
+
+  // 현재 비밀번호가 맞는지 DB 데이터와 비교
+  const currentUserInfo = await apiFetchUser(userStore.loginUser.id);
+  if (currentUserInfo.password !== currentPassword.value) {
+    alert('현재 비밀번호가 일치하지 않습니다.');
+    return;
+  }
+
+  // Store를 통해 새 비밀번호로 업데이트 요청
+  const isSuccess = await userStore.updateProfile({
+    password: newPassword.value,
+  });
+
+  if (isSuccess) {
+    alert('비밀번호가 성공적으로 변경되었습니다.');
+
+    currentPassword.value = '';
+    newPassword.value = '';
+  } else {
+    alert('비밀번호 변경에 실패했습니다. 다시 시도해주세요.');
+  }
+};
+
+const logout = () => {
+  if (confirm('로그아웃 하시겠습니까?')) {
+    userStore.logout();
+  }
+};
+
+// 4. 회원 탈퇴 실행
+const withdraw = () => {
+  if (confirm('정말 탈퇴하시겠습니까? (이 작업은 되돌릴 수 없습니다)')) {
+    userStore.withdrawAccount();
+  }
+};
+</script>
+
 <template>
   <div class="profile-edit-page">
     <div class="phone-frame">
@@ -104,69 +196,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref, nextTick } from 'vue';
-import CommonButton from '@/components/common/CommonButton.vue';
-
-const userName = ref('홍길동');
-const tempName = ref(''); // 수정을 위한 임시 상태
-const isEditingName = ref(false);
-const nameInput = ref(null);
-
-const currentPassword = ref('');
-const newPassword = ref('');
-
-const goBack = () => {
-  console.log('뒤로가기');
-};
-
-// 이름 수정 모드 진입
-const toggleEditName = async () => {
-  tempName.value = userName.value;
-  isEditingName.value = true;
-
-  // DOM 업데이트 후 인풋에 포커스
-  await nextTick();
-  nameInput.value?.focus();
-};
-
-// 이름 저장 로직
-const saveName = () => {
-  if (!isEditingName.value) return;
-
-  const trimmedName = tempName.value.trim();
-  if (trimmedName && trimmedName !== userName.value) {
-    userName.value = trimmedName;
-    console.log('이름 변경 완료:', userName.value);
-    // 여기서 API 호출 등을 수행할 수 있습니다.
-  }
-  isEditingName.value = false;
-};
-
-const changePassword = () => {
-  if (!currentPassword.value || !newPassword.value) {
-    alert('비밀번호를 입력해주세요.');
-    return;
-  }
-  console.log('비밀번호 변경 시도', {
-    current: currentPassword.value,
-    new: newPassword.value,
-  });
-};
-
-const logout = () => {
-  if (confirm('로그아웃 하시겠습니까?')) {
-    console.log('로그아웃 처리');
-  }
-};
-
-const withdraw = () => {
-  if (confirm('정말 탈퇴하시겠습니까?')) {
-    console.log('회원 탈퇴 처리');
-  }
-};
-</script>
 
 <style scoped>
 .name-input {

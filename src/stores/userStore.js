@@ -1,9 +1,14 @@
-// stores/user.js
+// stores/userStore.js
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
-import { login as apiLogin, signin as apiSignin } from '@/apis/userApi';
+import {
+  login as apiLogin,
+  signin as apiSignin,
+  updateUser as apiUpdateUser,
+  deleteUser as apiDeleteUser,
+} from '@/apis/userApi';
 
 export const useUserStore = defineStore('user', () => {
   const router = useRouter();
@@ -28,7 +33,7 @@ export const useUserStore = defineStore('user', () => {
           name: user.name,
           email: user.email,
         };
-        // 로그인 성공 시 메시지 (단, 회원가입 시에는 생략하고 싶다면 파라미터로 조절 가능)
+        router.push('/');
         return user; // 성공 시 유저 정보 반환
       } else {
         return null;
@@ -81,11 +86,50 @@ export const useUserStore = defineStore('user', () => {
     }
   };
 
+  // 4. 프로필 정보 수정 (이름, 비밀번호 등)
+  const updateProfile = async (newData) => {
+    if (!loginUser.value) return false;
+
+    try {
+      // API 호출 (현재 로그인된 유저 ID와 변경할 데이터 전달)
+      const updatedUser = await apiUpdateUser(loginUser.value.id, newData);
+
+      if (updatedUser) {
+        // 스토어의 정보도 최신화 (이름이 바뀌었을 수 있으므로)
+        loginUser.value = {
+          ...loginUser.value,
+          ...newData,
+        };
+        return true; // 성공 시 true 반환
+      }
+    } catch (error) {
+      console.error('정보 수정 실패:', error);
+      return false;
+    }
+  };
+
+  // 5. 회원 탈퇴
+  const withdrawAccount = async () => {
+    if (!loginUser.value) return;
+
+    try {
+      await apiDeleteUser(loginUser.value.id); // DB에서 삭제
+      alert('회원 탈퇴가 완료되었습니다. 이용해 주셔서 감사합니다.');
+      loginUser.value = null; // 로그인 정보 초기화
+      router.push('/login');
+    } catch (error) {
+      console.error('회원 탈퇴 실패:', error);
+      alert('회원 탈퇴 처리 중 문제가 발생했습니다.');
+    }
+  };
+
   return {
     loginUser,
     isLogin,
     login,
     logout,
     signup,
+    updateProfile,
+    withdrawAccount,
   };
 });
