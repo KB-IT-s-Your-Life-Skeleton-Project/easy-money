@@ -1,6 +1,6 @@
-import axios from "axios";
+import axios from 'axios';
 
-const BASE_URL = "/api/users";
+const BASE_URL = '/api/users';
 /**
  *
  * 스토어에서 회원 중복 로직 작성 필요합니다.
@@ -15,8 +15,8 @@ export const signin = async ({ email, password, name }, successCallback) => {
     const payload = { email, password, name };
     const response = await axios.post(BASE_URL, payload);
     if (response.status === 201) {
-      console.log("회원가입 성공", response.data);
-      successCallback;
+      console.log('회원가입 성공', response.data);
+      successCallback();
     }
   } catch (err) {
     alert(`signin 호출 에러: ${err.message}`);
@@ -42,7 +42,7 @@ export const login = async ({ email, password }) => {
       // resopnse는 배열이므로 첫번째 유저로 로그인 되도록 설정함
       return response.data[0];
     } else {
-      alert("로그인 실패");
+      alert('로그인 실패');
     }
   } catch (err) {
     alert(`login 호출 에러: ${err.message}`);
@@ -58,7 +58,7 @@ export const fetchUser = async (id) => {
     if (response.status === 200) {
       return response.data;
     } else {
-      alert("데이터 조회 실패");
+      alert('데이터 조회 실패');
     }
   } catch (err) {
     alert(`fetchUser 호출 에러: ${err.message}`);
@@ -80,7 +80,7 @@ export const updateUser = async (id, newData) => {
       console.log(response.data);
       return response.data;
     } else {
-      alert("업데이트 실패");
+      alert('업데이트 실패');
     }
   } catch (err) {
     alert(`updateUser 호출 에러: ${err.message}`);
@@ -96,7 +96,7 @@ export const deleteUser = async (id) => {
     if (response.status === 200) {
       return response.data;
     } else {
-      ("회원 삭제 오류");
+      ('회원 삭제 오류');
     }
   } catch (err) {
     alert(`이미 삭제되었거나 삭제할 id가 잘못되었습니다. \n${err.message}`);

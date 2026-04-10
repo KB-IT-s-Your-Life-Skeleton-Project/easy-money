@@ -1,3 +1,118 @@
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/userStore.js';
+import CommonButton from '@/components/common/CommonButton.vue';
+
+const router = useRouter();
+const userStore = useUserStore();
+
+const name = ref('');
+const email = ref('');
+const password = ref('');
+const passwordConfirm = ref('');
+
+const showPassword = ref(false);
+const showPasswordConfirm = ref(false);
+
+// 초기값은 모두 빈 문자열로 설정
+const emailError = ref('');
+const passwordError = ref('');
+const passwordConfirmError = ref('');
+
+// 뒤로가기
+const goBack = () => {
+  router.go(-1);
+};
+
+// 입력값 지우기 (X 버튼) - 지우면 에러 메시지도 함께 초기화
+const clearInput = (field) => {
+  if (field === 'name') name.value = '';
+  if (field === 'email') {
+    email.value = '';
+    emailError.value = '';
+  }
+};
+
+// 비밀번호 표시 토글
+const togglePassword = (field) => {
+  if (field === 'password') showPassword.value = !showPassword.value;
+  if (field === 'passwordConfirm')
+    showPasswordConfirm.value = !showPasswordConfirm.value;
+};
+
+// 1. 이메일 유효성 검사 (입력 중 발생)
+const validateEmail = () => {
+  if (!email.value) {
+    emailError.value = ''; // 다 지웠을 때는 에러 숨김
+    return;
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.value)) {
+    emailError.value = '이메일 형식으로 입력해주세요.';
+  } else {
+    emailError.value = '';
+  }
+};
+
+// 2. 비밀번호 유효성 검사 (최소 8자, 영문+숫자 포함)
+const validatePassword = () => {
+  if (!password.value) {
+    passwordError.value = '';
+    return;
+  }
+  // 영문(대소문자 상관없음) 1개 이상, 숫자 1개 이상 포함, 8자리 이상
+  const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8,}$/;
+  if (!passwordRegex.test(password.value)) {
+    passwordError.value = '8자 이상의 영문, 숫자를 입력하세요.';
+  } else {
+    passwordError.value = '';
+  }
+
+  // 비밀번호를 수정했을 때 확인창에 값이 있다면 다시 비교해줌
+  if (passwordConfirm.value) {
+    validatePasswordConfirm();
+  }
+};
+
+// 3. 비밀번호 확인 유효성 검사 (일치 여부)
+const validatePasswordConfirm = () => {
+  if (!passwordConfirm.value) {
+    passwordConfirmError.value = '';
+    return;
+  }
+  if (password.value !== passwordConfirm.value) {
+    passwordConfirmError.value = '비밀번호가 일치하지 않습니다.';
+  } else {
+    passwordConfirmError.value = '';
+  }
+};
+
+// 가입 버튼 눌렀을 때 최종 검사 및 스토어 회원가입 액션 호출
+const handleSignup = async () => {
+  // 빈 칸이 있거나 기존 에러가 남아있다면 가입 진행 막기
+  if (
+    !name.value ||
+    !email.value ||
+    !password.value ||
+    !passwordConfirm.value ||
+    emailError.value ||
+    passwordError.value ||
+    passwordConfirmError.value
+  ) {
+    alert('입력하신 정보를 다시 확인해주세요.');
+    return;
+  }
+
+  // 스토어의 signup 액션 호출
+  await userStore.signup({
+    name: name.value,
+    email: email.value,
+    password: password.value,
+  });
+};
+</script>
+
 <template>
   <div class="signup-page">
     <div class="phone-frame">
@@ -172,119 +287,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import CommonButton from '@/components/common/CommonButton.vue';
-
-const router = useRouter();
-
-const name = ref('');
-const email = ref('');
-const password = ref('');
-const passwordConfirm = ref('');
-
-const showPassword = ref(false);
-const showPasswordConfirm = ref(false);
-
-// 초기값은 모두 빈 문자열로 설정
-const emailError = ref('');
-const passwordError = ref('');
-const passwordConfirmError = ref('');
-
-// 뒤로가기
-const goBack = () => {
-  router.go(-1);
-  console.log('뒤로가기');
-};
-
-// 입력값 지우기 (X 버튼) - 지우면 에러 메시지도 함께 초기화
-const clearInput = (field) => {
-  if (field === 'name') name.value = '';
-  if (field === 'email') {
-    email.value = '';
-    emailError.value = '';
-  }
-};
-
-// 비밀번호 표시 토글
-const togglePassword = (field) => {
-  if (field === 'password') showPassword.value = !showPassword.value;
-  if (field === 'passwordConfirm')
-    showPasswordConfirm.value = !showPasswordConfirm.value;
-};
-
-// 1. 이메일 유효성 검사 (입력 중 발생)
-const validateEmail = () => {
-  if (!email.value) {
-    emailError.value = ''; // 다 지웠을 때는 에러 숨김
-    return;
-  }
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email.value)) {
-    emailError.value = '이메일 형식으로 입력해주세요.';
-  } else {
-    emailError.value = '';
-  }
-};
-
-// 2. 비밀번호 유효성 검사 (최소 8자, 영문+숫자 포함)
-const validatePassword = () => {
-  if (!password.value) {
-    passwordError.value = '';
-    return;
-  }
-  // 영문(대소문자 상관없음) 1개 이상, 숫자 1개 이상 포함, 8자리 이상
-  const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8,}$/;
-  if (!passwordRegex.test(password.value)) {
-    passwordError.value = '8자 이상의 영문, 숫자를 입력하세요.';
-  } else {
-    passwordError.value = '';
-  }
-
-  // 비밀번호를 수정했을 때 확인창에 값이 있다면 다시 비교해줌
-  if (passwordConfirm.value) {
-    validatePasswordConfirm();
-  }
-};
-
-// 3. 비밀번호 확인 유효성 검사 (일치 여부)
-const validatePasswordConfirm = () => {
-  if (!passwordConfirm.value) {
-    passwordConfirmError.value = '';
-    return;
-  }
-  if (password.value !== passwordConfirm.value) {
-    passwordConfirmError.value = '비밀번호가 일치하지 않습니다.';
-  } else {
-    passwordConfirmError.value = '';
-  }
-};
-
-// 가입 버튼 눌렀을 때 최종 검사
-const handleSignup = () => {
-  // 빈 칸이 있거나 기존 에러가 남아있다면 가입 진행 막기
-  if (
-    !name.value ||
-    !email.value ||
-    !password.value ||
-    !passwordConfirm.value ||
-    emailError.value ||
-    passwordError.value ||
-    passwordConfirmError.value
-  ) {
-    alert('입력하신 정보를 다시 확인해주세요.');
-    return;
-  }
-
-  console.log('회원가입 성공!', {
-    name: name.value,
-    email: email.value,
-    password: password.value,
-  });
-};
-</script>
 
 <style scoped>
 .signup-page {

@@ -1,3 +1,34 @@
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/userStore.js';
+import CommonButton from '@/components/common/CommonButton.vue';
+
+const router = useRouter();
+const userStore = useUserStore();
+
+const email = ref('');
+const password = ref('');
+const saveId = ref(false);
+
+const handleLogin = async () => {
+  if (!email.value || !password.value) {
+    alert('이메일과 비밀번호를 입력해주세요.');
+    return;
+  }
+
+  await userStore.login(email.value, password.value);
+};
+
+const goSignup = () => {
+  router.push('/signup');
+};
+
+const goFindPassword = () => {
+  console.log('비밀번호 찾기 페이지 이동');
+};
+</script>
+
 <template>
   <div class="login-page">
     <div class="phone-frame">
@@ -52,35 +83,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import CommonButton from '@/components/common/CommonButton.vue';
-
-const router = useRouter();
-
-const email = ref('');
-const password = ref('');
-const saveId = ref(false);
-
-const handleLogin = () => {
-  console.log('로그인 시도', {
-    email: email.value,
-    password: password.value,
-    saveId: saveId.value,
-  });
-};
-
-const goSignup = () => {
-  router.push('/signup');
-  console.log('회원가입 페이지 이동');
-};
-
-const goFindPassword = () => {
-  console.log('비밀번호 찾기 페이지 이동');
-};
-</script>
 
 <style scoped>
 .login-page {
