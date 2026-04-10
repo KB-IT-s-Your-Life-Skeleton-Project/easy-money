@@ -225,7 +225,7 @@
       "amount": 150000,
       "date": "2026-04-10",
       "content": "관리비",
-      "category": "living",
+      "category": "fixed",
       "memo": "4월 관리비",
       "isIncluded": true
     },
@@ -313,7 +313,7 @@
       "amount": 25000,
       "date": "2026-04-18",
       "content": "미용실",
-      "category": "beauty",
+      "category": "health",
       "memo": "커트",
       "isIncluded": true
     },
