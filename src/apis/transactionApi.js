@@ -49,10 +49,10 @@ export const getTransactions = async ({
     if (userId) params.userId = userId;
     if (date) params.date = date;
     if (startDate && endDate) {
-      params["date:gte"] = startDate;
-      params["date:lte"] = endDate;
+      params["date_gte"] = startDate;
+      params["date_lte"] = endDate;
     }
-    if (category.length) params["category:in"] = category.join(",");
+    if (category.length) params.category_in = category;
     if (type) params.type = type;
     const response = await axios.get(BASE_URL, { params });
     if (response.status === 200) {
@@ -61,4 +61,7 @@ export const getTransactions = async ({
   } catch (err) {
     alert(`거래내역 호출 에러: ${err.message}`);
   }
+};
+export const updateTranscation = async () => {
+  response = await axios.put();
 };
