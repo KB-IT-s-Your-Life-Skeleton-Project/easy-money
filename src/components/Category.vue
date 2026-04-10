@@ -3,7 +3,7 @@
     <div class="controls">
       <div class="month-selector">
         <button class="arrow-btn" @click="prevMonth">&lt;</button>
-        <span class="month-text">{{ currentMonth }}월</span>
+        <span class="month-text">{{ currentYear }}년 {{ currentMonth }}월</span>
         <button class="arrow-btn" @click="nextMonth">&gt;</button>
       </div>
 
@@ -30,14 +30,20 @@
     <div class="category-list">
       <div class="list-item" v-for="(item, index) in categoryData" :key="index">
         <div class="item-left">
-          <div class="icon" :style="{ backgroundColor: item.color }">
-            {{ item.icon }}
+          <div class="icon">
+            <img
+              :src="categoryIcons[item.iconKey]"
+              :alt="item.name"
+              class="icon-image"
+            />
           </div>
+
           <div class="item-info">
             <span class="name">{{ item.name }}</span>
             <span class="percent">{{ item.percent }}%</span>
           </div>
         </div>
+
         <div class="item-right">
           <span class="amount">{{ item.amount.toLocaleString() }}원</span>
         </div>
@@ -57,45 +63,100 @@ import {
   LinearScale,
 } from 'chart.js';
 
+import { categoryIcons } from '@/constants/categoryIcons';
+import { categoryColors } from '@/constants/categoryColors';
+
 ChartJS.register(Tooltip, BarElement, CategoryScale, LinearScale);
 
-// --- 상태 관리 (State) ---
-const currentMonth = ref(4);
-const currentType = ref('income'); // 'expense' 또는 'income'
+// --- 상태 관리 ---
+const currentYear = ref(new Date().getFullYear());
+const currentMonth = ref(new Date().getMonth() + 1);
+const currentType = ref('income');
 
 // 테스트용 임시 데이터
 const incomeData = ref([
-  { name: '용돈', percent: 50, amount: 500000, color: '#f1c45f', icon: '💰' },
-  { name: '급여', percent: 30, amount: 300000, color: '#d87070', icon: '🏧' },
-  { name: '기타', percent: 20, amount: 200000, color: '#678dec', icon: '💵' },
+  {
+    name: '용돈',
+    percent: 50,
+    amount: 500000,
+    chartColor: categoryColors.income.allowance,
+    iconKey: 'allowance',
+  },
+  {
+    name: '급여',
+    percent: 30,
+    amount: 300000,
+    chartColor: categoryColors.income.salary,
+    iconKey: 'salary',
+  },
+  {
+    name: '부가 수입',
+    percent: 20,
+    amount: 200000,
+    chartColor: categoryColors.income.extra,
+    iconKey: 'extra',
+  },
 ]);
 
 const expenseData = ref([
-  { name: '식비', percent: 40, amount: 400000, color: '#f1c45f', icon: '🍽️' },
-  { name: '월세', percent: 30, amount: 300000, color: '#d87070', icon: '🏠' },
-  { name: '카페', percent: 20, amount: 200000, color: '#678dec', icon: '☕' },
-  { name: '기타', percent: 10, amount: 100000, color: '#8bc48f', icon: '📁' },
+  {
+    name: '식비',
+    percent: 40,
+    amount: 400000,
+    chartColor: categoryColors.expense.food,
+    iconKey: 'food',
+  },
+  {
+    name: '고정지출',
+    percent: 30,
+    amount: 300000,
+    chartColor: categoryColors.expense.fixed,
+    iconKey: 'fixed',
+  },
+  {
+    name: '쇼핑',
+    percent: 20,
+    amount: 200000,
+    chartColor: categoryColors.expense.shopping,
+    iconKey: 'shopping',
+  },
+  {
+    name: '교통',
+    percent: 10,
+    amount: 100000,
+    chartColor: categoryColors.expense.transportation,
+    iconKey: 'transportation',
+  },
 ]);
 
-// 💡 수정된 부분: currentType에 따라 수입/지출 데이터를 동적으로 반환합니다.
 const categoryData = computed(() => {
   return currentType.value === 'income' ? incomeData.value : expenseData.value;
 });
 
-// --- 기능 (Methods) ---
+// --- 기능 ---
 const prevMonth = () => {
-  if (currentMonth.value > 1) currentMonth.value--;
-};
-const nextMonth = () => {
-  if (currentMonth.value < 12) currentMonth.value++;
+  if (currentMonth.value === 1) {
+    currentMonth.value = 12;
+    currentYear.value--;
+  } else {
+    currentMonth.value--;
+  }
 };
 
-// --- 차트 설정 (Chart.js) ---
+const nextMonth = () => {
+  if (currentMonth.value === 12) {
+    currentMonth.value = 1;
+    currentYear.value++;
+  } else {
+    currentMonth.value++;
+  }
+};
+
+// --- 차트 설정 ---
 const chartData = computed(() => {
   return {
     labels: ['Progress'],
     datasets: categoryData.value.map((item, index) => {
-      // 첫 번째와 마지막 데이터셋에만 테두리 둥글게 적용
       const isFirst = index === 0;
       const isLast = index === categoryData.value.length - 1;
 
@@ -105,12 +166,12 @@ const chartData = computed(() => {
 
       return {
         label: item.name,
-        data: [item.percent], // 퍼센트 값으로 차트 길이 결정
-        backgroundColor: item.color,
+        data: [item.percent],
+        backgroundColor: item.chartColor,
         borderWidth: 2,
         borderColor: '#ffffff',
         borderSkipped: false,
-        borderRadius: borderRadius,
+        borderRadius,
       };
     }),
   };
@@ -121,7 +182,9 @@ const chartOptions = ref({
   indexAxis: 'y',
   responsive: true,
   maintainAspectRatio: false,
-  plugins: { tooltip: { enabled: false } },
+  plugins: {
+    tooltip: { enabled: false },
+  },
   scales: {
     x: { stacked: true, display: false },
     y: { stacked: true, display: false },
@@ -130,14 +193,12 @@ const chartOptions = ref({
 </script>
 
 <style scoped>
-/* 전체 레이아웃 */
 .category-view {
   padding: 20px;
-  max-width: 400px; /* 모바일 사이즈 느낌을 위해 제한 (필요시 제거) */
+  max-width: 400px;
   margin: 0 auto;
 }
 
-/* 컨트롤 영역 (월 선택, 수입/지출) */
 .controls {
   display: flex;
   justify-content: space-between;
@@ -151,6 +212,11 @@ const chartOptions = ref({
   gap: 10px;
   font-size: 18px;
   font-weight: 600;
+}
+
+.month-text {
+  min-width: 90px;
+  text-align: center;
 }
 
 .arrow-btn {
@@ -184,14 +250,12 @@ const chartOptions = ref({
   border-radius: 8px;
 }
 
-/* 차트 영역 */
 .chart-wrapper {
   width: 100%;
-  height: 25px; /* 차트 두께 */
+  height: 25px;
   margin-bottom: 40px;
 }
 
-/* 리스트 영역 */
 .category-list {
   display: flex;
   flex-direction: column;
@@ -215,12 +279,17 @@ const chartOptions = ref({
 .icon {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.icon-image {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  display: block;
 }
 
 .item-info {
