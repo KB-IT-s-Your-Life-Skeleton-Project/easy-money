@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed } from "vue";
 
 const props = defineProps({
   // 전체 내역 데이터를 배열로 받습니다.
@@ -28,11 +28,16 @@ const groupedItems = computed(() => {
 // 날짜 문자열을 "4월 6일 월요일" 형식으로 바꿔주는 함수
 const formatDate = (dateStr) => {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('ko-KR', {
-    month: 'long',
-    day: 'numeric',
-    weekday: 'long',
+  return date.toLocaleDateString("ko-KR", {
+    month: "long",
+    day: "numeric",
+    weekday: "long",
   });
+};
+
+const getTransactionDescription = (item) => {
+  if (item.content && item.memo) return `${item.content} | ${item.memo}`;
+  return item.memo || item.location || "";
 };
 </script>
 
@@ -67,7 +72,7 @@ const formatDate = (dateStr) => {
                 {{ item.amount.toLocaleString() }} 원
               </span>
               <span class="text-xs text-gray-400 mt-0.5">
-                {{ item.location }} | {{ item.memo }}
+                {{ getTransactionDescription(item) }}
               </span>
             </div>
           </div>
