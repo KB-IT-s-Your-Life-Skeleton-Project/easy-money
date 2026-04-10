@@ -4,7 +4,7 @@ const BASE_URL = "/api/transactions";
 /**
  *
  * @returns 개별 거래내역 return
- * @example const transaction = getTransaction();
+ * @example const transaction = await getTransaction();
  */
 export const getTransactionById = async (id) => {
   try {
@@ -22,9 +22,20 @@ export const getTransactionById = async (id) => {
 /**
  * 전체 거래, 특정 거래일, 수입/지출, 카테고리 입력으로 호출
  * 세부 쿼리는 store에서 작성
- * @param {*} optinos
- *
- */
+ * @param {*} options 조건 선택적으로 조회(example 참고)
+ * @example
+ * const all = await getTransactions();
+ * @example
+ * const byDate = await getTransactions({ date: "2026-04-01" });
+ * @example
+ * const byRange = await getTransactions({
+ * startDate: "2026-04-01",
+ * endDate: "2026-04-30",
+ * category: ["음식", "교통"],
+ * type: "expense",
+ * });
+ **/
+
 export const getTransactions = async ({
   userId,
   date,
@@ -34,16 +45,19 @@ export const getTransactions = async ({
   type,
 } = {}) => {
   try {
-    params = {};
+    const params = {};
     if (userId) params.userId = userId;
     if (date) params.date = date;
     if (startDate && endDate) {
-      params.startDate = startDate;
-      params.endDate = endDate;
+      params["date:gte"] = startDate;
+      params["date:lte"] = endDate;
     }
-    if (category.length) params.category = category;
+    if (category.length) params["category:in"] = category.join(",");
     if (type) params.type = type;
     const response = await axios.get(BASE_URL, { params });
+    if (response.status === 200) {
+      return response.data;
+    }
   } catch (err) {
     alert(`거래내역 호출 에러: ${err.message}`);
   }
