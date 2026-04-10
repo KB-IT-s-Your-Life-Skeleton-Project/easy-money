@@ -25,7 +25,7 @@ export const signin = async ({ email, password, name }, successCallback) => {
 /**
  * @param {{ email: "email", password: "11", name: "11" }}
  * @param {Function} 로그인 성공시 실행될 함수 (ex. 메인 페이지로 이동 등)
- * @example const user = login({ email: "test@example.com", password: "test" },successLogin);
+ * @example const user = await login({ email: "test@example.com", password: "test" },successLogin);
  **/
 export const login = async ({ email, password }) => {
   try {
@@ -49,7 +49,7 @@ export const login = async ({ email, password }) => {
   }
 };
 /**
- * @example const user = fetchUser(id)
+ * @example const user = await fetchUser(id)
  **/
 export const fetchUser = async (id) => {
   try {
