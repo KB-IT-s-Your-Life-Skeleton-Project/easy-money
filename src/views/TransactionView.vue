@@ -1,7 +1,8 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import axios from 'axios'; // axios 임포트
-import TransactionList from '@/components/common/TransactionList.vue';
+import { ref, onMounted, computed } from "vue";
+import FilterBar from "@/components/FilterBar.vue";
+import FilterModal from "@/components/FilterModal.vue";
+import TransactionList from "@/components/common/TransactionList.vue";
 
 // 1. 상태 관리 (나중에는 서버에서 받아올 데이터)
 const transactions = ref([]);
@@ -295,19 +296,37 @@ onMounted(() => {
   ];
 });
 
-// 필터 버튼 상태 (선택된 것 강조용)
-const selectedFilter = ref('지출');
-const filters = ['전체', '수입', '지출', '기간'];
+const isModalOpen = ref(false);
+const filterPeriod = ref("1개월");
+const filterType = ref("전체");
+
+const periodLabels = {
+  "1week": "1주일",
+  "1month": "1개월",
+  "3month": "3개월",
+  monthly: "월별",
+  custom: "직접설정",
+};
+
+const typeLabels = {
+  all: "전체",
+  income: "입금",
+  expense: "출금",
+};
+
+const handleFilter = ({ period, type }) => {
+  filterPeriod.value = periodLabels[period] ?? "1개월";
+  filterType.value = typeLabels[type] ?? "전체";
+};
 
 // 2. [추가] 필터링된 데이터를 만들어주는 계산기(computed)를 만듭니다.
 const filteredTransactions = computed(() => {
-  if (selectedFilter.value === '전체') {
+  if (filterType.value === "전체") {
     return transactions.value;
   }
-  // '수입'을 누르면 income만, '지출'을 누르면 expense만 걸러줍니다.
-  const typeMap = { 수입: 'income', 지출: 'expense' };
+  const typeMap = { 입금: "income", 출금: "expense" };
   return transactions.value.filter(
-    (item) => item.type === typeMap[selectedFilter.value],
+    (item) => item.type === typeMap[filterType.value],
   );
 });
 </script>
@@ -347,32 +366,18 @@ const filteredTransactions = computed(() => {
       </div>
     </header>
 
-    <section class="px-6 py-4 flex gap-2 overflow-x-auto no-scrollbar">
-      <div class="flex bg-gray-200/50 p-1 rounded-xl">
-        <button
-          v-for="f in ['전체', '수입', '지출']"
-          :key="f"
-          @click="selectedFilter = f"
-          :class="
-            selectedFilter === f
-              ? 'bg-white shadow-sm text-slate-900'
-              : 'text-gray-500'
-          "
-          class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all"
-        >
-          {{ f }}
-        </button>
-      </div>
-      <button
-        class="px-4 py-2 bg-white border border-gray-100 rounded-xl text-sm font-bold shadow-sm"
-      >
-        카테고리 선택 ▼
-      </button>
-      <button
-        class="px-4 py-2 bg-white border border-gray-100 rounded-xl text-sm font-bold shadow-sm"
-      >
-        기간
-      </button>
+    <section class="px-6 py-4">
+      <FilterBar
+        :period="filterPeriod"
+        :type="filterType"
+        @open="isModalOpen = true"
+      />
+      <FilterModal
+        v-model="isModalOpen"
+        :period="filterPeriod"
+        :type="filterType"
+        @submit="handleFilter"
+      />
     </section>
 
     <main class="px-6">
