@@ -33,9 +33,10 @@ export const useUserStore = defineStore('user', () => {
           name: user.name,
           email: user.email,
         };
-        router.push('/');
+        router.push('/calendar');
         return user; // 성공 시 유저 정보 반환
       } else {
+        alert('이메일 또는 비밀번호가 올바르지 않습니다.');
         return null;
       }
     } catch (error) {
@@ -48,7 +49,7 @@ export const useUserStore = defineStore('user', () => {
   const logout = () => {
     loginUser.value = null;
     alert('로그아웃 되었습니다.');
-    router.push('/');
+    router.push('/login');
   };
 
   // 3. 회원가입 (자동 로그인 로직 추가)
@@ -73,11 +74,11 @@ export const useUserStore = defineStore('user', () => {
 
         if (loggedInUser) {
           // 로그인까지 성공하면 메인으로 이동
-          router.push('/');
+          router.push('/calendar');
         } else {
           // 가입은 됐는데 로그인이 실패한 경우 (드문 케이스)
           alert('자동 로그인에 실패했습니다. 로그인 페이지로 이동합니다.');
-          router.push('/');
+          router.push('/login');
         }
       });
     } catch (error) {

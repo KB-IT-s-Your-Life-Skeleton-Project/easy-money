@@ -62,9 +62,8 @@ export const getTransactions = async (
   if (!userId) throw new Error('userId는 필수입니다.');
   try {
     const params = {};
-    if (userId) {
-      params.userId = userId;
-    }
+    const numericUserId = Number(userId);
+    params.userId = Number.isNaN(numericUserId) ? userId : numericUserId;
     if (date) params.date = date;
     if (startDate && endDate) {
       params['date_gte'] = startDate;
@@ -74,7 +73,14 @@ export const getTransactions = async (
     if (type) params.type = type;
     const response = await axios.get(BASE_URL, { params });
     if (response.status === 200) {
-      return response.data;
+      return response.data.sort((a, b) => {
+        const dateCompare = b.date.localeCompare(a.date);
+        if (dateCompare !== 0) return dateCompare;
+
+        return String(b.id).localeCompare(String(a.id), undefined, {
+          numeric: true,
+        });
+      });
     }
   } catch (err) {
     alert(`거래내역 호출 에러: ${err.message}`);

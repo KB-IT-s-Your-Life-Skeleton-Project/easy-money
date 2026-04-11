@@ -2,6 +2,7 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { categoryIcons } from '@/constants/categoryIcons';
+import { normalizeCategoryKey } from '@/constants/categoryMeta';
 import { useMonthlyTransactionStore } from '@/stores/monthlyTranscationStore';
 import {
   getTransactionById,
@@ -29,11 +30,11 @@ const isLoaded = ref(false);
 const isCategoryMenuOpen = ref(false);
 const isSaving = ref(false);
 
-const expenseCategories = ['food', 'transportation', 'shopping', 'fixed', 'entertainment', 'education', 'healthcare', 'others'];
-const incomeCategories = ['salary', 'allowance', 'extra'];
+const expenseCategories = ['고정 지출', '식비', '쇼핑', '문화 생활', '의료·건강', '교통', '교육', '기타'];
+const incomeCategories = ['급여', '용돈', '기타 수입'];
 
 const currentIcon = computed(() => {
-  const key = transaction.category || 'others';
+  const key = normalizeCategoryKey(transaction.category);
   return categoryIcons[key];
 });
 
