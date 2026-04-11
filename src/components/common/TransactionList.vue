@@ -36,7 +36,7 @@ const formatDate = (dateStr) => {
 
 const getTransactionDescription = (item) => {
   if (item.content && item.memo) return `${item.content} | ${item.memo}`;
-  return item.memo || item.location || '';
+  return item.content || item.memo || item.location || '';
 };
 
 const goDetail = (id) => {

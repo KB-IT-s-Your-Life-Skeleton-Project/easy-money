@@ -6,6 +6,7 @@ import FilterModal from '@/components/FilterModal.vue';
 import TransactionList from '@/components/common/TransactionList.vue';
 import { useUserStore } from '@/stores/userStore';
 import { getTransactions } from '@/apis/transactionApi';
+import { normalizeCategoryKey } from '@/constants/categoryMeta';
 
 const userStore = useUserStore();
 const { loginUser } = storeToRefs(userStore);
@@ -14,6 +15,15 @@ const transactions = ref([]);
 const isModalOpen = ref(false);
 const filterPeriod = ref('1개월');
 const filterType = ref('전체');
+const filterOptions = ref({
+  period: '1month',
+  startDate: '',
+  endDate: '',
+  year: null,
+  month: null,
+  type: 'all',
+  category: [],
+});
 
 const periodLabels = {
   '1week': '1주일',
@@ -35,26 +45,54 @@ const fetchTransactions = async () => {
     return;
   }
 
-  const data = await getTransactions(loginUser.value.id);
+  const { period, startDate, endDate, year, month, type, category } =
+    filterOptions.value;
+
+  const query = {};
+
+  if (type && type !== 'all') {
+    query.type = type;
+  }
+
+  if (Array.isArray(category) && category.length) {
+    query.category = category.map((item) => normalizeCategoryKey(item));
+  }
+
+  if (period === 'custom' && startDate && endDate) {
+    query.startDate = startDate;
+    query.endDate = endDate;
+  } else if (period === 'monthly' && year && month) {
+    const yearMonth = `${year}-${String(month).padStart(2, '0')}`;
+    query.startDate = `${yearMonth}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    query.endDate = `${yearMonth}-${String(lastDay).padStart(2, '0')}`;
+  } else if (period === '1week' || period === '1month' || period === '3month') {
+    const today = new Date();
+    const start = new Date(today);
+
+    if (period === '1week') start.setDate(today.getDate() - 6);
+    if (period === '1month') start.setMonth(today.getMonth() - 1);
+    if (period === '3month') start.setMonth(today.getMonth() - 3);
+
+    query.startDate = start.toISOString().slice(0, 10);
+    query.endDate = today.toISOString().slice(0, 10);
+  }
+
+  const data = await getTransactions(loginUser.value.id, query);
   transactions.value = Array.isArray(data) ? data : [];
 };
 
 onMounted(fetchTransactions);
 
-const handleFilter = ({ period, type }) => {
-  filterPeriod.value = periodLabels[period] ?? '1개월';
-  filterType.value = typeLabels[type] ?? '전체';
+const handleFilter = (payload) => {
+  filterOptions.value = payload;
+  filterPeriod.value = periodLabels[payload.period] ?? '1개월';
+  filterType.value = typeLabels[payload.type] ?? '전체';
+  fetchTransactions();
 };
 
 const filteredTransactions = computed(() => {
-  if (filterType.value === '전체') {
-    return transactions.value;
-  }
-
-  const typeMap = { 입금: 'income', 출금: 'expense' };
-  return transactions.value.filter(
-    (item) => item.type === typeMap[filterType.value],
-  );
+  return transactions.value;
 });
 </script>
 
