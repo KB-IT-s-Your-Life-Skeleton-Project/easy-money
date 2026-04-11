@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import {
   getTransactions,
   createTransaction,
@@ -23,6 +23,25 @@ export const useMonthlyTransactionStore = defineStore('transaction', () => {
 
     return { startDate, endDate };
   };
+
+  // 월 총 수입
+  const monthlyIncome = computed(() => {
+    return transactions.value
+      .filter((item) => item.type === 'income')
+      .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  });
+
+  // 월 총 지출
+  const monthlyExpense = computed(() => {
+    return transactions.value
+      .filter((item) => item.type === 'expense')
+      .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  });
+
+  // 월 순수익
+  const monthlyNetIncome = computed(() => {
+    return monthlyIncome.value - monthlyExpense.value;
+  });
 
   // 1. 월 전체 조회
   const fetchMonthTransactions = async () => {
@@ -126,6 +145,12 @@ export const useMonthlyTransactionStore = defineStore('transaction', () => {
     transactions,
     loading,
     error,
+
+    // 월 합계
+    monthlyIncome,
+    monthlyExpense,
+    monthlyNetIncome,
+
     fetchMonthTransactions,
     addTransaction,
     editTransaction,

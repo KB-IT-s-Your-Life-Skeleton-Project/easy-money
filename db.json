@@ -23,6 +23,12 @@
       "password": "a1234567",
       "name": "안승환",
       "id": "Llk7BYb45Yo"
+    },
+    {
+      "email": "hyebin@example.com",
+      "password": "hyebin1234",
+      "name": "김혜빈",
+      "id": "gV5CJFY"
     }
   ],
   "transactions": [
