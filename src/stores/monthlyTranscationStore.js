@@ -48,14 +48,14 @@ export const useMonthlyTransactionStore = defineStore('transaction', () => {
   // 월 총 수입
   const monthlyIncome = computed(() => {
     return transactions.value
-      .filter((item) => item.type === 'income')
+      .filter((item) => item.type === 'income' && item.isIncluded !== false)
       .reduce((sum, item) => sum + Number(item.amount || 0), 0);
   });
 
   // 월 총 지출
   const monthlyExpense = computed(() => {
     return transactions.value
-      .filter((item) => item.type === 'expense')
+      .filter((item) => item.type === 'expense' && item.isIncluded !== false)
       .reduce((sum, item) => sum + Number(item.amount || 0), 0);
   });
 
@@ -107,10 +107,18 @@ export const useMonthlyTransactionStore = defineStore('transaction', () => {
     error.value = null;
 
     try {
+      if (!userId.value) {
+        throw new Error('로그인 사용자 정보가 없습니다.');
+      }
+
       const created = await createTransaction({
         userId: userId.value,
         ...newTransaction,
       });
+
+      if (!created) {
+        throw new Error('거래 등록 응답이 없습니다.');
+      }
 
       if (created?.date?.startsWith(currentMonth.value)) {
         transactions.value = sortLatestFirst([created, ...transactions.value]);
