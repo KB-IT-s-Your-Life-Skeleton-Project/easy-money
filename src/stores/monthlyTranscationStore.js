@@ -139,6 +139,26 @@ export const useMonthlyTransactionStore = defineStore('transaction', () => {
     }
   };
 
+  const syncTransaction = (updated) => {
+    const index = transactions.value.findIndex(
+      (item) => String(item.id) === String(updated.id),
+    );
+
+    if (index === -1) return;
+
+    if (updated?.date?.startsWith(currentMonth.value)) {
+      transactions.value[index] = updated;
+    } else {
+      transactions.value.splice(index, 1);
+    }
+  };
+
+  const removeTransactionFromState = (id) => {
+    transactions.value = transactions.value.filter(
+      (item) => String(item.id) !== String(id),
+    );
+  };
+
   return {
     userId,
     currentMonth,
@@ -155,5 +175,7 @@ export const useMonthlyTransactionStore = defineStore('transaction', () => {
     addTransaction,
     editTransaction,
     removeTransaction,
+    syncTransaction,
+    removeTransactionFromState,
   };
 });
