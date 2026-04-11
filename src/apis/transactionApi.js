@@ -60,10 +60,19 @@ export const getTransactions = async (
   { date, startDate, endDate, category = [], type } = {},
 ) => {
   if (!userId) throw new Error('userId는 필수입니다.');
+
+  const sortLatestFirst = (items) =>
+    [...items].sort((a, b) => {
+      const dateCompare = b.date.localeCompare(a.date);
+      if (dateCompare !== 0) return dateCompare;
+
+      return String(b.id).localeCompare(String(a.id), undefined, {
+        numeric: true,
+      });
+    });
+
   try {
     const params = {};
-    const numericUserId = Number(userId);
-    params.userId = Number.isNaN(numericUserId) ? userId : numericUserId;
     if (date) params.date = date;
     if (startDate && endDate) {
       params['date_gte'] = startDate;
@@ -71,17 +80,26 @@ export const getTransactions = async (
     }
     if (category.length) params.category_in = category;
     if (type) params.type = type;
-    const response = await axios.get(BASE_URL, { params });
-    if (response.status === 200) {
-      return response.data.sort((a, b) => {
-        const dateCompare = b.date.localeCompare(a.date);
-        if (dateCompare !== 0) return dateCompare;
 
-        return String(b.id).localeCompare(String(a.id), undefined, {
-          numeric: true,
-        });
-      });
-    }
+    const userIdCandidates = Array.from(
+      new Set([userId, String(userId), Number(userId)].filter((value) => value !== '' && !Number.isNaN(value))),
+    );
+
+    const responses = await Promise.all(
+      userIdCandidates.map((candidate) =>
+        axios.get(BASE_URL, { params: { ...params, userId: candidate } }),
+      ),
+    );
+
+    const merged = responses.flatMap((response) =>
+      Array.isArray(response.data) ? response.data : [],
+    );
+
+    const deduped = Array.from(
+      new Map(merged.map((item) => [String(item.id), item])).values(),
+    );
+
+    return sortLatestFirst(deduped);
   } catch (err) {
     alert(`거래내역 호출 에러: ${err.message}`);
   }
