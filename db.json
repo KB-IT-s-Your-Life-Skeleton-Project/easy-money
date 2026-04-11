@@ -361,6 +361,17 @@
       "category": "food",
       "memo": "떡볶이",
       "isIncluded": true
+    },
+    {
+      "userId": "1",
+      "type": "expense",
+      "amount": 5900,
+      "date": "2026-04-04",
+      "content": "카공족",
+      "category": "교육",
+      "memo": "주말 팀플 화이팅",
+      "isIncluded": true,
+      "id": "E7uPYp1wsKI"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
