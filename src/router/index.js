@@ -74,21 +74,21 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to, from) => {
-  const userStore = useUserStore();
+// router.beforeEach((to, from) => {
+//   const userStore = useUserStore();
 
-  if (to.meta.requiresAuth && !userStore.isLogin) {
-    // 1. 로그인이 필요한데 안 한 경우 -> 로그인 창으로 쫓아냄
-    return '/login';
-  }
+//   if (to.meta.requiresAuth && !userStore.isLogin) {
+//     // 1. 로그인이 필요한데 안 한 경우 -> 로그인 창으로 쫓아냄
+//     return '/login';
+//   }
 
-  if ((to.path === '/login' || to.path === '/signup') && userStore.isLogin) {
-    // 2. 이미 로그인했는데 로그인 창으로 가려는 경우 -> 달력으로 돌려보냄
-    return '/';
-  }
+//   if ((to.path === '/login' || to.path === '/signup') && userStore.isLogin) {
+//     // 2. 이미 로그인했는데 로그인 창으로 가려는 경우 -> 달력으로 돌려보냄
+//     return '/';
+//   }
 
-  // 3. 정상적인 접근이면 아무것도 반환하지 않거나 return true를 하면 통과됩니다!
-  return true;
-});
+//   // 3. 정상적인 접근이면 아무것도 반환하지 않거나 return true를 하면 통과됩니다!
+//   return true;
+// });
 
 export default router;

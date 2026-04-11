@@ -333,38 +333,7 @@ const filteredTransactions = computed(() => {
 
 <template>
   <div class="min-h-screen no-scrollbar bg-gray-50 pb-24">
-    <header class="p-6 bg-white flex flex-col gap-4">
-      <div class="flex items-center gap-1 text-lg font-bold">
-        4월 <span class="text-sm">▼</span>
-      </div>
-
-      <div class="bg-white rounded-[28px] p-6 shadow-xl border border-gray-100">
-        <div class="flex justify-between items-start mb-4">
-          <div>
-            <div class="text-2xl font-black text-slate-900">
-              + {{ totalBalance.toLocaleString() }} 원
-            </div>
-            <div class="text-xs text-blue-500 mt-1 font-medium">
-              지난달보다 100,000원 덜 쓰는 중
-            </div>
-          </div>
-          <div class="text-right text-xs space-y-1">
-            <div class="text-gray-400">
-              수입
-              <span class="text-green-500 font-bold ml-1"
-                >+ {{ totalIncome.toLocaleString() }}원</span
-              >
-            </div>
-            <div class="text-gray-400">
-              지출
-              <span class="text-red-500 font-bold ml-1"
-                >- {{ totalExpense.toLocaleString() }}원</span
-              >
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
+    <header></header>
 
     <section class="px-6 py-4">
       <FilterBar
