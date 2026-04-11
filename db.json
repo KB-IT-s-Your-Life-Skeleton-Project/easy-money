@@ -367,11 +367,11 @@
       "type": "expense",
       "amount": 5900,
       "date": "2026-04-11",
-      "content": "카공족",
+      "content": "카공족 성남신흥점",
       "category": "education",
-      "memo": "주말 팀플 화이팅,,",
+      "memo": "집가고싶다",
       "isIncluded": true,
-      "id": "_QegbF1Ginw"
+      "id": "whAyC0Zcnsw"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
