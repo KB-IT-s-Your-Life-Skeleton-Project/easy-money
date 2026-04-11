@@ -1,8 +1,10 @@
 <script setup>
 import { computed } from "vue";
+// 1. 아이콘과 색상 설정 파일을 불러옵니다. (경로는 프로젝트에 맞게 확인해주세요!)
+import { categoryIcons } from "@/constants/categoryIcons.js";
+import { categoryColors } from "@/constants/categoryColors.js";
 
 const props = defineProps({
-  // 전체 내역 데이터를 배열로 받습니다.
   items: {
     type: Array,
     required: true,
@@ -10,22 +12,17 @@ const props = defineProps({
   },
 });
 
-// [핵심] 데이터를 날짜별로 묶어주는 로직 (컴퓨티드 속성)
 const groupedItems = computed(() => {
   const groups = {};
-
   props.items.forEach((item) => {
-    // 날짜를 키값으로 사용 (예: "2026-04-06")
     if (!groups[item.date]) {
       groups[item.date] = [];
     }
     groups[item.date].push(item);
   });
-
   return groups;
 });
 
-// 날짜 문자열을 "4월 6일 월요일" 형식으로 바꿔주는 함수
 const formatDate = (dateStr) => {
   const date = new Date(dateStr);
   return date.toLocaleDateString("ko-KR", {
@@ -38,6 +35,20 @@ const formatDate = (dateStr) => {
 const getTransactionDescription = (item) => {
   if (item.content && item.memo) return `${item.content} | ${item.memo}`;
   return item.memo || item.location || "";
+};
+
+// 2. 카테고리에 맞는 아이콘을 찾아주는 함수
+const getCategoryIcon = (category) => {
+  return categoryIcons[category] || null; // 일치하는 아이콘이 없으면 null 반환
+};
+
+// 3. 카테고리와 타입(income/expense)에 맞는 배경색을 찾아주는 함수
+const getCategoryColor = (type, category) => {
+  // 색상표에 해당 타입과 카테고리가 존재하면 그 색상을, 없으면 기본 회색 반환
+  if (categoryColors[type] && categoryColors[type][category]) {
+    return categoryColors[type][category];
+  }
+  return "#f3f4f6"; // 기본 배경색 (bg-gray-100과 동일한 색상)
 };
 </script>
 
@@ -54,10 +65,18 @@ const getTransactionDescription = (item) => {
         class="flex items-center justify-between px-6 py-4 active:bg-gray-50 transition-colors"
       >
         <div class="flex items-center gap-4">
+          
           <div
-            class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-xl overflow-hidden"
+            class="w-12 h-12 rounded-full flex items-center justify-center text-xl overflow-hidden"
+            :style="{ backgroundColor: getCategoryColor(item.type, item.category) }"
           >
-            💰
+            <img 
+              v-if="getCategoryIcon(item.category)" 
+              :src="getCategoryIcon(item.category)" 
+              class="w-12 h-12" 
+              alt="category icon"
+            />
+            <span v-else>💰</span>
           </div>
 
           <div>

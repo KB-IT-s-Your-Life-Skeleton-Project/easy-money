@@ -9,13 +9,13 @@ const router = useRouter();
 const transactionStore = useTransactionStore();
 const userStore = useUserStore();
 
-// 1. 데이터 상태 정의
+// 1. 데이터 상태 정의 (화면에서는 한글을 들고 있습니다)
 const transaction = reactive({
   type: 'expense',
   date: new Date().toISOString().substring(0, 10),
   amount: null, 
   content: '',
-  category: '',
+  category: '', 
   memo: '',
   isIncluded: true, 
 });
@@ -32,7 +32,7 @@ const handleAmountInput = (e) => {
   transaction.amount = rawValue ? parseInt(rawValue, 10) : null;
 };
 
-// 4. [수정됨] 타입별 카테고리 자동 변경 (새로운 DB 구조 반영)
+// 4. 타입별 카테고리 (UI 노출용)
 const currentCategories = computed(() => {
   return transaction.type === 'income'
     ? ['급여', '용돈', '기타 수입']
@@ -42,8 +42,23 @@ const currentCategories = computed(() => {
 const isCategoryMenuOpen = ref(false); 
 
 const selectCategory = (cat) => {
-  transaction.category = cat;
+  transaction.category = cat; // 여기서는 한글 이름 그대로 저장!
   isCategoryMenuOpen.value = false; 
+};
+
+// 💡 [추가됨] 한글 카테고리를 영어 코드로 바꿔주는 마법의 사전!
+const categoryMap = {
+  '급여': 'salary',
+  '용돈': 'allowance',
+  '기타 수입': 'extra',
+  '고정 지출': 'fixed',
+  '식비': 'food',
+  '쇼핑': 'shopping',
+  '문화 생활': 'entertainment',
+  '의료·건강': 'healthcare',
+  '교통': 'transportation',
+  '교육': 'education',
+  '기타': 'others'
 };
 
 // 5. 저장 함수 연결
@@ -64,13 +79,14 @@ const submitTransaction = async () => {
     return;
   }
 
+  // 💡 [수정됨] DB로 보내기 직전에 사전을 보고 영어 코드로 변환해서 넣습니다.
   const newTransactionData = {
     userId: currentUserId,
     type: transaction.type,
     amount: transaction.amount,
     date: transaction.date,
     content: transaction.content,
-    category: transaction.category,
+    category: categoryMap[transaction.category] || 'others', // 👈 여기가 핵심!
     memo: transaction.memo,
     isIncluded: transaction.isIncluded
   };
