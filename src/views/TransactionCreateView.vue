@@ -1,100 +1,59 @@
 <script setup>
 import { ref, reactive, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { useTransactionStore } from '@/stores/transactionStore'; 
-import { useUserStore } from '@/stores/userStore'; 
+import { useMonthlyTransactionStore } from '@/stores/monthlyTranscationStore';
 import CommonButton from '@/components/common/CommonButton.vue';
 
 const router = useRouter();
-const transactionStore = useTransactionStore();
-const userStore = useUserStore();
+const monthlyTransactionStore = useMonthlyTransactionStore();
 
-// 1. 데이터 상태 정의 (화면에서는 한글을 들고 있습니다)
 const transaction = reactive({
   type: 'expense',
   date: new Date().toISOString().substring(0, 10),
-  amount: null, 
+  amount: null,
   content: '',
-  category: '', 
+  category: '',
   memo: '',
-  isIncluded: true, 
+  isIncluded: true,
 });
 
-// 2. 금액 포맷팅 (화면 표시용)
 const formattedAmount = computed(() => {
   if (!transaction.amount && transaction.amount !== 0) return '';
   return transaction.amount.toLocaleString() + '원';
 });
 
-// 3. 금액 입력 핸들러 (숫자만 추출)
 const handleAmountInput = (e) => {
   const rawValue = e.target.value.replace(/[^0-9]/g, '');
   transaction.amount = rawValue ? parseInt(rawValue, 10) : null;
 };
 
-// 4. 타입별 카테고리 (UI 노출용)
 const currentCategories = computed(() => {
   return transaction.type === 'income'
     ? ['급여', '용돈', '기타 수입']
     : ['고정 지출', '식비', '쇼핑', '문화 생활', '의료·건강', '교통', '교육', '기타'];
 });
 
-const isCategoryMenuOpen = ref(false); 
+const isCategoryMenuOpen = ref(false);
 
 const selectCategory = (cat) => {
-  transaction.category = cat; // 여기서는 한글 이름 그대로 저장!
-  isCategoryMenuOpen.value = false; 
+  transaction.category = cat;
+  isCategoryMenuOpen.value = false;
 };
 
-// 💡 [추가됨] 한글 카테고리를 영어 코드로 바꿔주는 마법의 사전!
-const categoryMap = {
-  '급여': 'salary',
-  '용돈': 'allowance',
-  '기타 수입': 'extra',
-  '고정 지출': 'fixed',
-  '식비': 'food',
-  '쇼핑': 'shopping',
-  '문화 생활': 'entertainment',
-  '의료·건강': 'healthcare',
-  '교통': 'transportation',
-  '교육': 'education',
-  '기타': 'others'
-};
-
-// 5. 저장 함수 연결
 const submitTransaction = async () => {
   if (!transaction.amount || !transaction.content) {
     alert('금액과 내용을 입력해 주세요! 👵');
     return;
   }
+
   if (!transaction.category) {
     alert('카테고리를 선택해 주세요!');
     return;
   }
 
-  const currentUserId = userStore.loginUser?.id;
-  if (!currentUserId) {
-    alert('로그인 정보가 없습니다. 다시 로그인해 주세요.');
-    router.push('/login');
-    return;
-  }
-
-  // 💡 [수정됨] DB로 보내기 직전에 사전을 보고 영어 코드로 변환해서 넣습니다.
-  const newTransactionData = {
-    userId: currentUserId,
-    type: transaction.type,
-    amount: transaction.amount,
-    date: transaction.date,
-    content: transaction.content,
-    category: categoryMap[transaction.category] || 'others', // 👈 여기가 핵심!
-    memo: transaction.memo,
-    isIncluded: transaction.isIncluded
-  };
-
-  await transactionStore.addTransaction(newTransactionData);
-
+  await monthlyTransactionStore.addTransaction({ ...transaction });
   alert('작성 완료! ✨');
-  router.back(); 
+  router.push('/transactions');
 };
 </script>
 
@@ -111,13 +70,24 @@ const submitTransaction = async () => {
 
     <main class="px-6 space-y-8 mt-4">
       <div class="relative flex bg-gray-100 rounded-xl p-1 w-full h-12">
-        <div class="absolute top-1 left-1 h-10 w-[calc(50%-4px)] bg-white rounded-lg shadow-sm transition-transform duration-300 ease-in-out"
-          :class="transaction.type === 'expense' ? 'translate-x-full' : 'translate-x-0'">
-        </div>
-        <button @click="transaction.type = 'income'" class="relative z-10 flex-1 flex items-center justify-center font-bold transition-colors duration-300"
-          :class="transaction.type === 'income' ? 'text-green-600' : 'text-gray-400'">수입</button>
-        <button @click="transaction.type = 'expense'" class="relative z-10 flex-1 flex items-center justify-center font-bold transition-colors duration-300"
-          :class="transaction.type === 'expense' ? 'text-red-500' : 'text-gray-400'">지출</button>
+        <div
+          class="absolute top-1 left-1 h-10 w-[calc(50%-4px)] bg-white rounded-lg shadow-sm transition-transform duration-300 ease-in-out"
+          :class="transaction.type === 'expense' ? 'translate-x-full' : 'translate-x-0'"
+        ></div>
+        <button
+          @click="transaction.type = 'income'"
+          class="relative z-10 flex-1 flex items-center justify-center font-bold transition-colors duration-300"
+          :class="transaction.type === 'income' ? 'text-green-600' : 'text-gray-400'"
+        >
+          수입
+        </button>
+        <button
+          @click="transaction.type = 'expense'"
+          class="relative z-10 flex-1 flex items-center justify-center font-bold transition-colors duration-300"
+          :class="transaction.type === 'expense' ? 'text-red-500' : 'text-gray-400'"
+        >
+          지출
+        </button>
       </div>
 
       <div class="space-y-6">
@@ -202,7 +172,18 @@ const submitTransaction = async () => {
 </template>
 
 <style scoped>
-.slide-up-enter-active, .slide-up-leave-active { transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1); }
-.slide-up-enter-from, .slide-up-leave-to { opacity: 0; transform: translateY(100%); }
-.slide-up-enter-to, .slide-up-leave-from { opacity: 1; transform: translateY(0); }
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.slide-up-enter-from,
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(100%);
+}
+.slide-up-enter-to,
+.slide-up-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
 </style>

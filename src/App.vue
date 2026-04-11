@@ -19,7 +19,10 @@ const hideNavPaths = [
 ];
 
 const showNavigation = computed(() => {
-  return isLogin.value && !hideNavPaths.includes(route.path);
+  return (
+    isLogin.value &&
+    !hideNavPaths.some((path) => route.path.startsWith(path))
+  );
 });
 
 const goTransactionCreate = () => {
