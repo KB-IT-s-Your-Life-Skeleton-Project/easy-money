@@ -1,21 +1,32 @@
 import { categoryColors } from '@/constants/categoryColors';
 
 export const categoryLabels = {
-  급여: '급여',
-  용돈: '용돈',
-  '기타 수입': '기타 수입',
-  식비: '식비',
-  교통: '교통',
-  교육: '교육',
-  '고정 지출': '고정 지출',
-  쇼핑: '쇼핑',
-  '의료·건강': '의료·건강',
-  '문화 생활': '문화 생활',
-  기타: '기타',
+  salary: '급여',
+  allowance: '용돈',
+  extra: '기타 수입',
+  food: '식비',
+  transportation: '교통',
+  education: '교육',
+  fixed: '고정 지출',
+  shopping: '쇼핑',
+  healthcare: '의료·건강',
+  entertainment: '문화 생활',
+  others: '기타',
 };
 
 export const normalizeCategoryKey = (category) => {
   const map = {
+    salary: 'salary',
+    allowance: 'allowance',
+    extra: 'extra',
+    food: 'food',
+    transportation: 'transportation',
+    education: 'education',
+    fixed: 'fixed',
+    shopping: 'shopping',
+    healthcare: 'healthcare',
+    entertainment: 'entertainment',
+    others: 'others',
     급여: 'salary',
     용돈: 'allowance',
     '기타 수입': 'extra',
@@ -33,7 +44,8 @@ export const normalizeCategoryKey = (category) => {
 };
 
 export const getCategoryLabel = (category) => {
-  return categoryLabels[category] ?? '기타';
+  const key = normalizeCategoryKey(category);
+  return categoryLabels[key] ?? '기타';
 };
 
 export const getCategoryColor = (type, category) => {

@@ -1,5 +1,7 @@
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useMonthlyTransactionStore } from '@/stores/monthlyTranscationStore';
 
 const props = defineProps({
   items: {
@@ -12,7 +14,9 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(['update:modelValue']);
+const monthlyTransactionStore = useMonthlyTransactionStore();
+const { currentMonth } = storeToRefs(monthlyTransactionStore);
 
 const today = new Date();
 
@@ -22,18 +26,18 @@ const today = new Date();
 const format = (date) => {
   const safeDate = typeof date === "string" ? new Date(date) : date;
   const year = safeDate.getFullYear();
-  const month = String(safeDate.getMonth() + 1).padStart(2, "0");
-  const day = String(safeDate.getDate()).padStart(2, "0");
+  const month = String(safeDate.getMonth() + 1).padStart(2, '0');
+  const day = String(safeDate.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
 
 const parseDate = (dateString) => {
   if (!dateString) return new Date();
-  const [year, month, day] = dateString.split("-").map(Number);
+  const [year, month, day] = dateString.split('-').map(Number);
   return new Date(year, month - 1, day);
 };
 
-const getDefaultDate = () => props.items[0]?.date ?? format(today);
+const getDefaultDate = () => `${currentMonth.value}-01`;
 
 const selectedDate = ref(parseDate(props.modelValue || getDefaultDate()));
 
@@ -48,22 +52,29 @@ watch(
 watch(
   () => props.items,
   (items) => {
-    if (props.modelValue || !items.length) return;
+    if (props.modelValue) return;
+
+    if (!items.length) {
+      selectedDate.value = parseDate(getDefaultDate());
+      emit('update:modelValue', '');
+      return;
+    }
+
     selectedDate.value = parseDate(items[0].date);
-    emit("update:modelValue", items[0].date);
+    emit('update:modelValue', items[0].date);
   },
   { immediate: true },
 );
 
 const initialPage = computed(() => ({
-  month: selectedDate.value.getMonth() + 1,
-  year: selectedDate.value.getFullYear(),
+  month: Number(currentMonth.value.split('-')[1]),
+  year: Number(currentMonth.value.split('-')[0]),
 }));
 
 /**
  * 금액 포맷
  */
-const money = (value) => value.toLocaleString("ko-KR");
+const money = (value) => value.toLocaleString('ko-KR');
 
 /**
  * 날짜 동일 여부
@@ -102,7 +113,17 @@ const summary = computed(() => {
  */
 const selectDate = (day) => {
   selectedDate.value = day.date;
-  emit("update:modelValue", format(day.date));
+  emit('update:modelValue', format(day.date));
+};
+
+const handlePageUpdate = async (pages) => {
+  const currentPage = Array.isArray(pages) ? pages[0] : pages;
+  if (!currentPage?.year || !currentPage?.month) return;
+
+  const nextMonth = `${currentPage.year}-${String(currentPage.month).padStart(2, '0')}`;
+  if (currentMonth.value === nextMonth) return;
+
+  await monthlyTransactionStore.setCurrentMonth(nextMonth);
 };
 </script>
 
@@ -113,6 +134,7 @@ const selectDate = (day) => {
     title-position="left"
     locale="ko"
     :initial-page="initialPage"
+    @update:pages="handlePageUpdate"
   >
     <template #day-content="{ day }">
       <div
