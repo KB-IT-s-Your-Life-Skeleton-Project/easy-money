@@ -388,11 +388,6 @@ const filteredTransactions = computed(() => {
       </div>
     </main>
 
-    <div class="fixed bottom-6 left-0 w-full px-6">
-      <div
-        class="h-14 bg-yellow-400 rounded-2xl shadow-lg flex items-center justify-center font-bold text-lg active:scale-95 transition-all"
-      ></div>
-    </div>
   </div>
 </template>
 
