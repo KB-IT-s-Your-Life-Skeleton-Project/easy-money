@@ -2,53 +2,45 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { categoryIcons } from '@/constants/categoryIcons';
+import { useMonthlyTransactionStore } from '@/stores/monthlyTranscationStore';
+import {
+  getTransactionById,
+  updateTransaction,
+  deleteTransaction,
+} from '@/apis/transactionApi';
 
 const router = useRouter();
 const route = useRoute();
+const monthlyTransactionStore = useMonthlyTransactionStore();
+const transactionId = String(route.params.id);
 
-// 1. 상태 데이터 관리
 const transaction = reactive({
   id: null,
-  type: 'expense', // 'expense' 또는 'income'
-  amount: 9000,
-  date: '2026-04-06',
-  time: '13:13',
-  location: '버거킹 성남이마트점',
-  category: '식비',
-  memo: '통새우와퍼',
-  isIncluded: false, // 통계 포함 여부 (false면 '제외' 토글이 꺼진 상태)
+  type: 'expense',
+  amount: null,
+  date: '',
+  content: '',
+  category: '',
+  memo: '',
+  isIncluded: true,
 });
 
 const isLoaded = ref(false);
 const isCategoryMenuOpen = ref(false);
+const isSaving = ref(false);
 
-// 2. 카테고리 한글명 -> 아이콘 키 매핑
-const categoryMap = {
-  식비: 'food',
-  교통: 'transportation',
-  쇼핑: 'shopping',
-  생활: 'fixed',
-  취미: 'entertainment',
-  교육: 'education',
-  의료: 'healthcare',
-  기타: 'others',
-  급여: 'salary',
-  용돈: 'allowance',
-  기타수입: 'extra',
-};
+const expenseCategories = ['food', 'transportation', 'shopping', 'fixed', 'entertainment', 'education', 'healthcare', 'others'];
+const incomeCategories = ['salary', 'allowance', 'extra'];
 
-// 현재 카테고리에 맞는 SVG 아이콘 가져오기
 const currentIcon = computed(() => {
-  const key = categoryMap[transaction.category] || 'others';
+  const key = transaction.category || 'others';
   return categoryIcons[key];
 });
 
-// 3. 타입에 따른 라벨 변경 (지출처 vs 수입처)
 const locationLabel = computed(() =>
   transaction.type === 'expense' ? '지출처' : '수입처',
 );
 
-// 4. 금액 포맷팅 및 입력 핸들러
 const formattedAmount = computed(() => {
   if (transaction.amount === null) return '';
   const prefix = transaction.type === 'expense' ? '-' : '+';
@@ -61,11 +53,8 @@ const handleAmountInput = (e) => {
   transaction.amount = rawValue ? parseInt(rawValue, 10) : null;
 };
 
-// 5. 카테고리 선택 (작성 화면과 동일 로직)
 const categories = computed(() =>
-  transaction.type === 'income'
-    ? ['용돈', '급여', '기타수입']
-    : ['카페', '식비', '교통', '쇼핑', '생활', '취미'],
+  transaction.type === 'income' ? incomeCategories : expenseCategories,
 );
 
 const selectCategory = (cat) => {
@@ -73,14 +62,79 @@ const selectCategory = (cat) => {
   isCategoryMenuOpen.value = false;
 };
 
-onMounted(() => {
-  // 실제로는 route.params.id를 이용해 데이터를 가져옵니다.
-  isLoaded.value = true;
-});
+const applyTransaction = (source) => {
+  if (!source) return;
+
+  transaction.id = source.id;
+  transaction.type = source.type ?? 'expense';
+  transaction.amount = Number(source.amount ?? 0);
+  transaction.date = source.date ?? '';
+  transaction.content = source.content ?? '';
+  transaction.category = source.category ?? '';
+  transaction.memo = source.memo ?? '';
+  transaction.isIncluded = source.isIncluded ?? true;
+};
+
+const loadTransaction = async () => {
+  try {
+    const data = await getTransactionById(transactionId);
+    if (!data) {
+      alert('거래 내역을 찾을 수 없습니다.');
+      router.replace('/transactions');
+      return;
+    }
+
+    applyTransaction(data);
+    isLoaded.value = true;
+  } catch (err) {
+    alert('거래 내역을 찾을 수 없습니다.');
+    router.replace('/transactions');
+  }
+};
+
+onMounted(loadTransaction);
 
 const goBack = () => router.back();
-const handleDelete = () => {
-  if (confirm('정말 삭제하시겠습니까?')) router.push('/transactions');
+
+const handleSave = async () => {
+  if (!transaction.amount || !transaction.content) {
+    alert('금액과 내용을 입력해 주세요.');
+    return;
+  }
+
+  isSaving.value = true;
+
+  try {
+    const updated = await updateTransaction(transaction.id, {
+      type: transaction.type,
+      amount: transaction.amount,
+      date: transaction.date,
+      content: transaction.content,
+      category: transaction.category,
+      memo: transaction.memo,
+      isIncluded: transaction.isIncluded,
+    });
+    if (updated) {
+      monthlyTransactionStore.syncTransaction(updated);
+    }
+    alert('거래 내역이 수정되었습니다.');
+    router.push('/transactions');
+  } finally {
+    isSaving.value = false;
+  }
+};
+
+const handleDelete = async () => {
+  if (!transaction.id || !confirm('정말 삭제하시겠습니까?')) return;
+
+  try {
+    await deleteTransaction(transaction.id);
+    monthlyTransactionStore.removeTransactionFromState(transaction.id);
+    alert('거래 내역이 삭제되었습니다.');
+    router.push('/transactions');
+  } catch (err) {
+    console.error('delete failed:', err);
+  }
 };
 </script>
 
@@ -126,7 +180,7 @@ const handleDelete = () => {
           />
         </div>
         <span class="text-lg font-bold text-slate-500 py-1">
-          {{ transaction.location }}
+          {{ transaction.content }}
         </span>
       </div>
 
@@ -167,7 +221,7 @@ const handleDelete = () => {
       <div class="flex justify-between items-center">
         <span class="text-gray-400 font-medium">{{ locationLabel }}</span>
         <input
-          v-model="transaction.location"
+          v-model="transaction.content"
           type="text"
           class="text-right font-bold text-slate-900 outline-none bg-transparent flex-1 ml-10 border-b-2 border-transparent focus:border-slate-900 transition-all"
         />
@@ -242,6 +296,16 @@ const handleDelete = () => {
         </div>
       </div>
     </Transition>
+
+    <div class="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-gray-100 p-4">
+      <button
+        @click="handleSave"
+        :disabled="isSaving"
+        class="w-full rounded-2xl bg-slate-900 py-4 text-white font-bold disabled:opacity-50"
+      >
+        {{ isSaving ? '저장 중...' : '수정하기' }}
+      </button>
+    </div>
   </div>
 </template>
 
