@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import { useUserStore } from '@/stores/userStore';
 import {
   getTransactions,
   createTransaction,
@@ -8,12 +9,32 @@ import {
 } from '@/apis/transactionApi';
 
 export const useMonthlyTransactionStore = defineStore('transaction', () => {
-  const userId = ref(1);
+  const userStore = useUserStore();
   const currentMonth = ref(new Date().toISOString().slice(0, 7));
 
   const transactions = ref([]);
   const loading = ref(false);
   const error = ref(null);
+  const userId = computed(() => {
+    return userStore.loginUser?.id ?? null;
+  });
+
+  const sortLatestFirst = (items) => {
+    return [...items].sort((a, b) => {
+      const dateCompare = b.date.localeCompare(a.date);
+      if (dateCompare !== 0) return dateCompare;
+
+      return String(b.id).localeCompare(String(a.id), undefined, {
+        numeric: true,
+      });
+    });
+  };
+
+  const shiftYearMonth = (yearMonth, delta) => {
+    const [year, month] = yearMonth.split('-').map(Number);
+    const date = new Date(year, month - 1 + delta, 1);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  };
 
   const getMonthRange = (yearMonth) => {
     const [year, month] = yearMonth.split('-').map(Number);
@@ -49,6 +70,11 @@ export const useMonthlyTransactionStore = defineStore('transaction', () => {
     error.value = null;
 
     try {
+      if (!userId.value) {
+        transactions.value = [];
+        return;
+      }
+
       const { startDate, endDate } = getMonthRange(currentMonth.value);
 
       const data = await getTransactions(userId.value, {
@@ -56,13 +82,23 @@ export const useMonthlyTransactionStore = defineStore('transaction', () => {
         endDate,
       });
 
-      transactions.value = Array.isArray(data) ? data : [];
+      transactions.value = Array.isArray(data) ? sortLatestFirst(data) : [];
     } catch (err) {
       error.value = err.message || '월 거래내역 조회 실패';
       console.error('fetchMonthTransactions error:', err);
     } finally {
       loading.value = false;
     }
+  };
+
+  const setCurrentMonth = async (yearMonth) => {
+    currentMonth.value = yearMonth;
+    await fetchMonthTransactions();
+  };
+
+  const shiftCurrentMonth = async (delta) => {
+    currentMonth.value = shiftYearMonth(currentMonth.value, delta);
+    await fetchMonthTransactions();
   };
 
   // 2. 등록
@@ -77,7 +113,7 @@ export const useMonthlyTransactionStore = defineStore('transaction', () => {
       });
 
       if (created?.date?.startsWith(currentMonth.value)) {
-        transactions.value.unshift(created);
+        transactions.value = sortLatestFirst([created, ...transactions.value]);
       }
 
       return created;
@@ -98,17 +134,20 @@ export const useMonthlyTransactionStore = defineStore('transaction', () => {
     try {
       const updated = await updateTransaction(id, newData);
 
-      const index = transactions.value.findIndex((item) => item.id === id);
+      const index = transactions.value.findIndex(
+        (item) => String(item.id) === String(id),
+      );
 
       if (index !== -1) {
         if (updated?.date?.startsWith(currentMonth.value)) {
           transactions.value[index] = updated;
+          transactions.value = sortLatestFirst(transactions.value);
         } else {
           transactions.value.splice(index, 1);
         }
       } else {
         if (updated?.date?.startsWith(currentMonth.value)) {
-          transactions.value.unshift(updated);
+          transactions.value = sortLatestFirst([updated, ...transactions.value]);
         }
       }
 
@@ -129,7 +168,9 @@ export const useMonthlyTransactionStore = defineStore('transaction', () => {
 
     try {
       await deleteTransaction(id);
-      transactions.value = transactions.value.filter((item) => item.id !== id);
+      transactions.value = transactions.value.filter(
+        (item) => String(item.id) !== String(id),
+      );
     } catch (err) {
       error.value = err.message || '거래 삭제 실패';
       console.error('removeTransaction error:', err);
@@ -148,6 +189,7 @@ export const useMonthlyTransactionStore = defineStore('transaction', () => {
 
     if (updated?.date?.startsWith(currentMonth.value)) {
       transactions.value[index] = updated;
+      transactions.value = sortLatestFirst(transactions.value);
     } else {
       transactions.value.splice(index, 1);
     }
@@ -172,6 +214,8 @@ export const useMonthlyTransactionStore = defineStore('transaction', () => {
     monthlyNetIncome,
 
     fetchMonthTransactions,
+    setCurrentMonth,
+    shiftCurrentMonth,
     addTransaction,
     editTransaction,
     removeTransaction,

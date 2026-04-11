@@ -1,24 +1,21 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, watch } from 'vue';
+import { storeToRefs } from 'pinia';
+import MonthSelector from '@/components/common/MonthSelector.vue';
+import { useMonthlyTransactionStore } from '@/stores/monthlyTranscationStore';
+import { useUserStore } from '@/stores/userStore';
+import { getTransactions } from '@/apis/transactionApi';
 
-const activeTab = ref("trend");
-const currentMonth = new Date().getMonth() + 1;
+const activeTab = ref('trend');
+const monthlyTransactionStore = useMonthlyTransactionStore();
+const userStore = useUserStore();
+const { currentMonth, monthlyIncome, monthlyExpense } =
+  storeToRefs(monthlyTransactionStore);
 
-// 최근 6개월 데이터 (mock)
-const trendData = [
-  { month: "11월", income: 280, expense: 210 },
-  { month: "12월", income: 300, expense: 260 },
-  { month: "1월", income: 270, expense: 190 },
-  { month: "2월", income: 290, expense: 220 },
-  { month: "3월", income: 310, expense: 240 },
-  { month: "4월", income: 300, expense: 180 },
-];
+const trendData = ref([]);
+const yoyIncome = ref({ thisYear: 0, lastYear: 0 });
+const yoyExpense = ref({ thisYear: 0, lastYear: 0 });
 
-// 이번 달 vs 작년 동일 월 (mock)
-const yoyIncome = { thisYear: 300, lastYear: 270 };
-const yoyExpense = { thisYear: 180, lastYear: 220 };
-
-// SVG 설정
 const SVG_W = 320;
 const SVG_H = 180;
 const PAD_L = 28;
@@ -26,9 +23,78 @@ const PAD_R = 12;
 const PAD_T = 16;
 const PAD_B = 24;
 
-const allVals = computed(() => trendData.flatMap((d) => [d.income, d.expense]));
-const maxVal = computed(() => Math.ceil(Math.max(...allVals.value) / 50) * 50);
-const minVal = computed(() => Math.floor(Math.min(...allVals.value) / 50) * 50);
+const getMonthRange = (yearMonth) => {
+  const [year, month] = yearMonth.split('-').map(Number);
+  const startDate = `${yearMonth}-01`;
+  const lastDay = new Date(year, month, 0).getDate();
+  const endDate = `${yearMonth}-${String(lastDay).padStart(2, '0')}`;
+  return { startDate, endDate };
+};
+
+const shiftYearMonth = (yearMonth, delta) => {
+  const [year, month] = yearMonth.split('-').map(Number);
+  const date = new Date(year, month - 1 + delta, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+};
+
+const sumByType = (items, type) =>
+  items
+    .filter((item) => item.type === type && item.isIncluded !== false)
+    .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+const fetchChartData = async () => {
+  const userId = userStore.loginUser?.id;
+  if (!userId) return;
+
+  await monthlyTransactionStore.fetchMonthTransactions();
+
+  const months = Array.from({ length: 6 }, (_, index) =>
+    shiftYearMonth(currentMonth.value, index - 5),
+  );
+
+  const monthlyData = await Promise.all(
+    months.map(async (yearMonth) => {
+      const { startDate, endDate } = getMonthRange(yearMonth);
+      const items = await getTransactions(userId, { startDate, endDate });
+      const safeItems = Array.isArray(items) ? items : [];
+
+      return {
+        month: `${Number(yearMonth.split('-')[1])}월`,
+        income: Math.round(sumByType(safeItems, 'income') / 10000),
+        expense: Math.round(sumByType(safeItems, 'expense') / 10000),
+      };
+    }),
+  );
+
+  trendData.value = monthlyData;
+
+  const lastYearMonth = shiftYearMonth(currentMonth.value, -12);
+  const { startDate, endDate } = getMonthRange(lastYearMonth);
+  const lastYearItems = await getTransactions(userId, { startDate, endDate });
+  const safeLastYearItems = Array.isArray(lastYearItems) ? lastYearItems : [];
+
+  yoyIncome.value = {
+    thisYear: Math.round(monthlyIncome.value / 10000),
+    lastYear: Math.round(sumByType(safeLastYearItems, 'income') / 10000),
+  };
+
+  yoyExpense.value = {
+    thisYear: Math.round(monthlyExpense.value / 10000),
+    lastYear: Math.round(sumByType(safeLastYearItems, 'expense') / 10000),
+  };
+};
+
+onMounted(fetchChartData);
+watch(currentMonth, fetchChartData);
+
+const currentMonthNumber = computed(() => Number(currentMonth.value.split('-')[1]));
+const allVals = computed(() =>
+  trendData.value.length
+    ? trendData.value.flatMap((d) => [d.income, d.expense])
+    : [0],
+);
+const maxVal = computed(() => Math.max(50, Math.ceil(Math.max(...allVals.value) / 50) * 50));
+const minVal = computed(() => 0);
 
 const yGridLines = computed(() => {
   const lines = [];
@@ -37,35 +103,31 @@ const yGridLines = computed(() => {
 });
 
 const xPos = (i) =>
-  PAD_L + (i / (trendData.length - 1)) * (SVG_W - PAD_L - PAD_R);
+  PAD_L +
+  (i / Math.max(trendData.value.length - 1, 1)) * (SVG_W - PAD_L - PAD_R);
 const yPos = (v) =>
   PAD_T +
-  (1 - (v - minVal.value) / (maxVal.value - minVal.value)) *
+  (1 - (v - minVal.value) / Math.max(maxVal.value - minVal.value, 1)) *
     (SVG_H - PAD_T - PAD_B);
 
 const linePoints = (key) =>
-  trendData.map((d, i) => `${xPos(i)},${yPos(d[key])}`).join(" ");
+  trendData.value.map((d, i) => `${xPos(i)},${yPos(d[key])}`).join(' ');
 
 const areaPath = (key) => {
-  const pts = trendData.map((d, i) => `${xPos(i)},${yPos(d[key])}`).join(" L ");
+  const pts = trendData.value.map((d, i) => `${xPos(i)},${yPos(d[key])}`).join(' L ');
   const bottom = SVG_H - PAD_B;
-  return `M ${xPos(0)},${bottom} L ${pts} L ${xPos(trendData.length - 1)},${bottom} Z`;
+  return `M ${xPos(0)},${bottom} L ${pts} L ${xPos(trendData.value.length - 1)},${bottom} Z`;
 };
 
 const yoyBarWidth = (thisYear, lastYear) =>
-  `${(thisYear / Math.max(thisYear, lastYear)) * 100}%`;
-
-// 인사이트
-const insight = computed(() => {
-  const cur = trendData[trendData.length - 1].expense;
-  const prev = trendData[trendData.length - 2].expense;
-  const diff = cur - prev;
-});
+  `${(thisYear / Math.max(thisYear, lastYear, 1)) * 100}%`;
 </script>
 
 <template>
   <div class="chart-page">
-    <!-- 토글 -->
+    <div class="month-selector-wrap">
+      <MonthSelector />
+    </div>
     <div class="toggle-wrap">
       <button
         class="toggle-btn"
@@ -84,19 +146,17 @@ const insight = computed(() => {
     </div>
 
     <Transition name="fade" mode="out-in">
-      <!-- 꺾은선 그래프 -->
       <div v-if="activeTab === 'trend'" key="trend" class="chart-wrap">
         <div class="chart-legend">
           <span class="legend-line income" />수입
           <span class="legend-line expense" style="margin-left: 16px" />지출
         </div>
 
-        <div class="svg-wrap">
+        <div class="svg-wrap" v-if="trendData.length">
           <svg
             :viewBox="`0 0 ${SVG_W} ${SVG_H}`"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <!-- Y축 가이드라인 -->
             <line
               v-for="y in yGridLines"
               :key="y"
@@ -107,7 +167,6 @@ const insight = computed(() => {
               stroke="#f0f0f0"
               stroke-width="1"
             />
-            <!-- Y축 레이블 -->
             <text
               v-for="y in yGridLines"
               :key="'lbl' + y"
@@ -120,12 +179,9 @@ const insight = computed(() => {
               {{ y }}
             </text>
 
-            <!-- 수입 영역 -->
             <path :d="areaPath('income')" fill="rgba(74,144,217,0.08)" />
-            <!-- 지출 영역 -->
             <path :d="areaPath('expense')" fill="rgba(245,166,35,0.08)" />
 
-            <!-- 수입 꺾은선 -->
             <polyline
               :points="linePoints('income')"
               fill="none"
@@ -134,7 +190,6 @@ const insight = computed(() => {
               stroke-linecap="round"
               stroke-linejoin="round"
             />
-            <!-- 지출 꺾은선 -->
             <polyline
               :points="linePoints('expense')"
               fill="none"
@@ -144,7 +199,6 @@ const insight = computed(() => {
               stroke-linejoin="round"
             />
 
-            <!-- 수입 포인트 -->
             <circle
               v-for="(d, i) in trendData"
               :key="'ic' + i"
@@ -153,7 +207,6 @@ const insight = computed(() => {
               r="3.5"
               fill="#4a90d9"
             />
-            <!-- 지출 포인트 -->
             <circle
               v-for="(d, i) in trendData"
               :key="'ec' + i"
@@ -163,7 +216,6 @@ const insight = computed(() => {
               fill="#f5a623"
             />
 
-            <!-- X축 레이블 -->
             <text
               v-for="(d, i) in trendData"
               :key="'xl' + i"
@@ -180,97 +232,59 @@ const insight = computed(() => {
         <p class="unit-label">단위: 만원</p>
       </div>
 
-      <!-- 작년 동일 월 비교 -->
       <div v-else key="yoy" class="chart-wrap">
-        <p class="yoy-title">{{ currentMonth }}월 올해 vs 작년</p>
+        <p class="yoy-title">{{ currentMonthNumber }}월 올해 vs 작년</p>
 
-        <!-- 수입 비교 -->
         <div class="yoy-section">
           <p class="yoy-section-label">수입</p>
           <div class="yoy-cards">
             <div class="yoy-card this-year">
-              <span class="yoy-card-year">올해 {{ currentMonth }}월</span>
-              <span class="yoy-card-amount income-color"
-                >{{ yoyIncome.thisYear }}만원</span
-              >
+              <span class="yoy-card-year">올해 {{ currentMonthNumber }}월</span>
+              <span class="yoy-card-amount income-color">
+                {{ yoyIncome.thisYear }}만원
+              </span>
             </div>
             <div class="yoy-vs">VS</div>
             <div class="yoy-card last-year">
-              <span class="yoy-card-year">작년 {{ currentMonth }}월</span>
-              <span class="yoy-card-amount muted-color"
-                >{{ yoyIncome.lastYear }}만원</span
-              >
+              <span class="yoy-card-year">작년 {{ currentMonthNumber }}월</span>
+              <span class="yoy-card-amount muted-color">
+                {{ yoyIncome.lastYear }}만원
+              </span>
             </div>
           </div>
           <div class="yoy-bar-bg">
             <div
               class="yoy-bar-fill income-bg"
-              :style="{
-                width: yoyBarWidth(yoyIncome.thisYear, yoyIncome.lastYear),
-              }"
+              :style="{ width: yoyBarWidth(yoyIncome.thisYear, yoyIncome.lastYear) }"
             />
           </div>
-          <p
-            class="yoy-diff-text"
-            :class="
-              yoyIncome.thisYear >= yoyIncome.lastYear ? 'positive' : 'negative'
-            "
-          >
-            {{ yoyIncome.thisYear >= yoyIncome.lastYear ? "▲" : "▼" }}
-            작년보다 {{ Math.abs(yoyIncome.thisYear - yoyIncome.lastYear) }}만원
-            {{
-              yoyIncome.thisYear >= yoyIncome.lastYear
-                ? "더 벌었어요"
-                : "덜 벌었어요"
-            }}
-          </p>
         </div>
 
         <div class="yoy-divider" />
 
-        <!-- 지출 비교 -->
         <div class="yoy-section">
           <p class="yoy-section-label">지출</p>
           <div class="yoy-cards">
             <div class="yoy-card this-year">
-              <span class="yoy-card-year">올해 {{ currentMonth }}월</span>
-              <span class="yoy-card-amount expense-color"
-                >{{ yoyExpense.thisYear }}만원</span
-              >
+              <span class="yoy-card-year">올해 {{ currentMonthNumber }}월</span>
+              <span class="yoy-card-amount expense-color">
+                {{ yoyExpense.thisYear }}만원
+              </span>
             </div>
             <div class="yoy-vs">VS</div>
             <div class="yoy-card last-year">
-              <span class="yoy-card-year">작년 {{ currentMonth }}월</span>
-              <span class="yoy-card-amount muted-color"
-                >{{ yoyExpense.lastYear }}만원</span
-              >
+              <span class="yoy-card-year">작년 {{ currentMonthNumber }}월</span>
+              <span class="yoy-card-amount muted-color">
+                {{ yoyExpense.lastYear }}만원
+              </span>
             </div>
           </div>
           <div class="yoy-bar-bg">
             <div
               class="yoy-bar-fill expense-bg"
-              :style="{
-                width: yoyBarWidth(yoyExpense.thisYear, yoyExpense.lastYear),
-              }"
+              :style="{ width: yoyBarWidth(yoyExpense.thisYear, yoyExpense.lastYear) }"
             />
           </div>
-          <p
-            class="yoy-diff-text"
-            :class="
-              yoyExpense.thisYear <= yoyExpense.lastYear
-                ? 'positive'
-                : 'negative'
-            "
-          >
-            {{ yoyExpense.thisYear <= yoyExpense.lastYear ? "▼" : "▲" }}
-            작년보다
-            {{ Math.abs(yoyExpense.thisYear - yoyExpense.lastYear) }}만원
-            {{
-              yoyExpense.thisYear <= yoyExpense.lastYear
-                ? "절약했어요"
-                : "더 썼어요"
-            }}
-          </p>
         </div>
       </div>
     </Transition>
@@ -282,27 +296,12 @@ const insight = computed(() => {
   padding: 20px 16px;
   background: #f8f9fb;
   min-height: 100vh;
-  font-family: "Pretendard", "Apple SD Gothic Neo", sans-serif;
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
 }
-
-.insight-card {
+.month-selector-wrap {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #fff;
-  border-radius: 14px;
-  padding: 16px 18px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-.insight-emoji {
-  font-size: 24px;
-}
-.insight-text {
-  font-size: 15px;
-  font-weight: 600;
-  color: #222;
-  line-height: 1.4;
+  justify-content: center;
+  margin-bottom: 16px;
 }
 
 .toggle-wrap {
@@ -326,7 +325,7 @@ const insight = computed(() => {
 }
 .toggle-btn.active {
   background: #fff;
-  color: var(--color--yellow-dark, #f5a623);
+  color: var(--color-yellow-dark, #f5a623);
   font-weight: 700;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
@@ -357,7 +356,7 @@ const insight = computed(() => {
   background: #4a90d9;
 }
 .legend-line.expense {
-  background: var(--color--yellow-dark, #f5a623);
+  background: var(--color-yellow-dark, #f5a623);
 }
 
 .svg-wrap {
@@ -376,16 +375,11 @@ const insight = computed(() => {
   margin-top: 4px;
 }
 
-/* 작년 비교 */
 .yoy-title {
   font-size: 15px;
   font-weight: 700;
   color: #333;
   margin-bottom: 18px;
-}
-
-.yoy-section {
-  margin-bottom: 4px;
 }
 
 .yoy-section-label {
@@ -430,7 +424,7 @@ const insight = computed(() => {
   color: #4a90d9;
 }
 .expense-color {
-  color: var(--color--yellow-dark, #f5a623);
+  color: var(--color-yellow-dark, #f5a623);
 }
 .muted-color {
   color: #bbb;
@@ -459,20 +453,7 @@ const insight = computed(() => {
   background: #4a90d9;
 }
 .expense-bg {
-  background: var(--color--yellow-dark, #f5a623);
-}
-
-.yoy-diff-text {
-  font-size: 12px;
-  font-weight: 600;
-  text-align: right;
-  margin-bottom: 4px;
-}
-.yoy-diff-text.positive {
-  color: #4a90d9;
-}
-.yoy-diff-text.negative {
-  color: #f06060;
+  background: var(--color-yellow-dark, #f5a623);
 }
 
 .yoy-divider {
