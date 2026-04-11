@@ -3,7 +3,6 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import Calendar from '@/components/Calendar.vue';
 import TransactionList from '@/components/common/TransactionList.vue';
-import MonthSelector from '@/components/common/MonthSelector.vue';
 import { useMonthlyTransactionStore } from '@/stores/monthlyTranscationStore';
 
 const transactionStore = useMonthlyTransactionStore();
@@ -58,13 +57,14 @@ const totalExpense = computed(() =>
 
 <template>
   <div class="min-h-screen bg-[#f5f5f5] px-4 py-5">
-    <section class="mb-4 flex justify-center">
-      <MonthSelector />
-    </section>
     <section
       class="mb-5 rounded-[28px] bg-white px-5 pt-5 pb-0 shadow-[0_8px_24px_rgba(15,23,42,0.08)]"
     >
-      <Calendar v-model="selectedDate" :items="transactions" />
+      <Calendar
+        :key="currentMonth"
+        v-model="selectedDate"
+        :items="transactions"
+      />
     </section>
 
     <section
