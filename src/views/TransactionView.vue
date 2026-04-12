@@ -7,6 +7,7 @@ import TransactionList from '@/components/common/TransactionList.vue';
 import { useUserStore } from '@/stores/userStore';
 import { getTransactions } from '@/apis/transactionApi';
 import { normalizeCategoryKey } from '@/constants/categoryMeta';
+import { formatLocalDate } from '@/utils/date';
 
 const userStore = useUserStore();
 const { loginUser } = storeToRefs(userStore);
@@ -35,8 +36,8 @@ const periodLabels = {
 
 const typeLabels = {
   all: '전체',
-  income: '입금',
-  expense: '출금',
+  income: '수입',
+  expense: '지출',
 };
 
 const fetchTransactions = async () => {
@@ -58,28 +59,33 @@ const fetchTransactions = async () => {
     query.category = category.map((item) => normalizeCategoryKey(item));
   }
 
-  if (period === 'custom' && startDate && endDate) {
-    query.startDate = startDate;
-    query.endDate = endDate;
-  } else if (period === 'monthly' && year && month) {
-    const yearMonth = `${year}-${String(month).padStart(2, '0')}`;
-    query.startDate = `${yearMonth}-01`;
-    const lastDay = new Date(year, month, 0).getDate();
-    query.endDate = `${yearMonth}-${String(lastDay).padStart(2, '0')}`;
-  } else if (period === '1week' || period === '1month' || period === '3month') {
-    const today = new Date();
-    const start = new Date(today);
+  try {
+    if (period === 'custom' && startDate && endDate) {
+      query.startDate = startDate;
+      query.endDate = endDate;
+    } else if (period === 'monthly' && year && month) {
+      const yearMonth = `${year}-${String(month).padStart(2, '0')}`;
+      query.startDate = `${yearMonth}-01`;
+      const lastDay = new Date(year, month, 0).getDate();
+      query.endDate = `${yearMonth}-${String(lastDay).padStart(2, '0')}`;
+    } else if (period === '1week' || period === '1month' || period === '3month') {
+      const today = new Date();
+      const start = new Date(today);
 
-    if (period === '1week') start.setDate(today.getDate() - 6);
-    if (period === '1month') start.setMonth(today.getMonth() - 1);
-    if (period === '3month') start.setMonth(today.getMonth() - 3);
+      if (period === '1week') start.setDate(today.getDate() - 6);
+      if (period === '1month') start.setMonth(today.getMonth() - 1);
+      if (period === '3month') start.setMonth(today.getMonth() - 3);
 
-    query.startDate = start.toISOString().slice(0, 10);
-    query.endDate = today.toISOString().slice(0, 10);
+      query.startDate = formatLocalDate(start);
+      query.endDate = formatLocalDate(today);
+    }
+
+    const data = await getTransactions(loginUser.value.id, query);
+    transactions.value = Array.isArray(data) ? data : [];
+  } catch (err) {
+    transactions.value = [];
+    alert(err.message || '거래내역 조회에 실패했습니다.');
   }
-
-  const data = await getTransactions(loginUser.value.id, query);
-  transactions.value = Array.isArray(data) ? data : [];
 };
 
 onMounted(fetchTransactions);

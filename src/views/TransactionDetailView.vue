@@ -2,7 +2,7 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { categoryIcons } from '@/constants/categoryIcons';
-import { normalizeCategoryKey } from '@/constants/categoryMeta';
+import { getCategoryLabel, normalizeCategoryKey } from '@/constants/categoryMeta';
 import { useMonthlyTransactionStore } from '@/stores/monthlyTranscationStore';
 import {
   getTransactionById,
@@ -30,12 +30,21 @@ const isLoaded = ref(false);
 const isCategoryMenuOpen = ref(false);
 const isSaving = ref(false);
 
-const expenseCategories = ['고정 지출', '식비', '쇼핑', '문화 생활', '의료·건강', '교통', '교육', '기타'];
-const incomeCategories = ['급여', '용돈', '기타 수입'];
+const expenseCategories = [
+  'fixed',
+  'food',
+  'shopping',
+  'entertainment',
+  'healthcare',
+  'transportation',
+  'education',
+  'others',
+];
+const incomeCategories = ['salary', 'allowance', 'extra'];
 
 const currentIcon = computed(() => {
   const key = normalizeCategoryKey(transaction.category);
-  return categoryIcons[key];
+  return categoryIcons[key] ?? categoryIcons.others;
 });
 
 const locationLabel = computed(() =>
@@ -63,6 +72,14 @@ const selectCategory = (cat) => {
   isCategoryMenuOpen.value = false;
 };
 
+const setTransactionType = (type) => {
+  if (transaction.type === type) return;
+
+  transaction.type = type;
+  transaction.category = '';
+  isCategoryMenuOpen.value = false;
+};
+
 const applyTransaction = (source) => {
   if (!source) return;
 
@@ -71,7 +88,7 @@ const applyTransaction = (source) => {
   transaction.amount = Number(source.amount ?? 0);
   transaction.date = source.date ?? '';
   transaction.content = source.content ?? '';
-  transaction.category = source.category ?? '';
+  transaction.category = normalizeCategoryKey(source.category);
   transaction.memo = source.memo ?? '';
   transaction.isIncluded = source.isIncluded ?? true;
 };
@@ -103,6 +120,11 @@ const handleSave = async () => {
     return;
   }
 
+  if (!transaction.category) {
+    alert('카테고리를 선택해 주세요.');
+    return;
+  }
+
   isSaving.value = true;
 
   try {
@@ -120,6 +142,8 @@ const handleSave = async () => {
     }
     alert('거래 내역이 수정되었습니다.');
     router.push('/transactions');
+  } catch (err) {
+    alert(err.message || '거래 수정에 실패했습니다.');
   } finally {
     isSaving.value = false;
   }
@@ -134,7 +158,7 @@ const handleDelete = async () => {
     alert('거래 내역이 삭제되었습니다.');
     router.push('/transactions');
   } catch (err) {
-    console.error('delete failed:', err);
+    alert(err.message || '거래 삭제에 실패했습니다.');
   }
 };
 </script>
@@ -213,10 +237,38 @@ const handleDelete = async () => {
           class="flex items-center gap-1 group"
         >
           <span class="text-blue-500 font-bold group-hover:underline">
-            {{ transaction.category }}
+            {{ getCategoryLabel(transaction.category) }}
           </span>
           <span class="text-[10px] text-blue-300 font-black">〉</span>
         </button>
+      </div>
+
+      <div class="flex justify-between items-center">
+        <span class="text-gray-400 font-medium">유형</span>
+        <div class="flex items-center gap-2">
+          <button
+            @click="setTransactionType('income')"
+            class="rounded-full px-3 py-1 text-sm font-bold transition-colors"
+            :class="
+              transaction.type === 'income'
+                ? 'bg-green-100 text-green-700'
+                : 'bg-gray-100 text-gray-400'
+            "
+          >
+            수입
+          </button>
+          <button
+            @click="setTransactionType('expense')"
+            class="rounded-full px-3 py-1 text-sm font-bold transition-colors"
+            :class="
+              transaction.type === 'expense'
+                ? 'bg-red-100 text-red-500'
+                : 'bg-gray-100 text-gray-400'
+            "
+          >
+            지출
+          </button>
+        </div>
       </div>
 
       <div class="flex justify-between items-center">
@@ -291,7 +343,7 @@ const handleDelete = async () => {
                   : 'bg-gray-50 text-gray-400'
               "
             >
-              {{ cat }}
+              {{ getCategoryLabel(cat) }}
             </button>
           </div>
         </div>
