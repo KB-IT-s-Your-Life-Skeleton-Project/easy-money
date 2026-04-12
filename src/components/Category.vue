@@ -31,10 +31,13 @@ onMounted(() => {
 
 const categoryData = computed(() => {
   const filtered = transactions.value.filter(
-    (item) => item.type === currentType.value && item.isIncluded !== false,
+    (item) => item.type === currentType.value && item.isIncluded !== false
   );
 
-  const totalAmount = filtered.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const totalAmount = filtered.reduce(
+    (sum, item) => sum + Number(item.amount || 0),
+    0
+  );
   const grouped = filtered.reduce((acc, item) => {
     const key = normalizeCategoryKey(item.category);
     acc[key] = (acc[key] ?? 0) + Number(item.amount || 0);
@@ -91,49 +94,56 @@ const chartOptions = {
 </script>
 
 <template>
-  <div class="category-view">
-    <div class="controls">
-      <MonthSelector />
-      <div class="type-toggle">
-        <button
-          :class="{ active: currentType === 'income' }"
-          @click="currentType = 'income'"
-        >
-          수입
-        </button>
-        <button
-          :class="{ active: currentType === 'expense' }"
-          @click="currentType = 'expense'"
-        >
-          지출
-        </button>
-      </div>
-    </div>
-
-    <div class="chart-wrapper" v-if="categoryData.length">
-      <Bar :data="chartData" :options="chartOptions" />
-    </div>
-    <p v-else class="empty-text">선택한 월의 통계 데이터가 없습니다.</p>
-
-    <div class="category-list">
-      <div class="list-item" v-for="item in categoryData" :key="item.key">
-        <div class="item-left">
-          <div class="icon">
-            <img
-              :src="categoryIcons[normalizeCategoryKey(item.iconKey)] || categoryIcons.others"
-              :alt="item.name"
-              class="icon-image"
-            />
-          </div>
-
-          <div class="item-info">
-            <span class="name">{{ item.name }}</span>
-            <span class="percent">{{ item.percent }}%</span>
-          </div>
+  <div class="page-container">
+    <div class="white-box">
+      <div class="controls">
+        <MonthSelector />
+        <div class="type-toggle">
+          <button
+            :class="{ active: currentType === 'income' }"
+            @click="currentType = 'income'"
+          >
+            수입
+          </button>
+          <button
+            :class="{ active: currentType === 'expense' }"
+            @click="currentType = 'expense'"
+          >
+            지출
+          </button>
         </div>
+      </div>
 
-        <div class="item-right">
-          <span class="amount">{{ item.amount.toLocaleString() }}원</span>
+      <div class="chart-wrapper" v-if="categoryData.length">
+        <Bar :data="chartData" :options="chartOptions" />
+      </div>
+      <p v-else class="empty-text">선택한 월의 통계 데이터가 없습니다.</p>
+    </div>
+
+    <div class="white-box list-box" v-if="categoryData.length">
+      <div class="category-list">
+        <div class="list-item" v-for="item in categoryData" :key="item.key">
+          <div class="item-left">
+            <div class="icon">
+              <img
+                :src="
+                  categoryIcons[normalizeCategoryKey(item.iconKey)] ||
+                  categoryIcons.others
+                "
+                :alt="item.name"
+                class="icon-image"
+              />
+            </div>
+
+            <div class="item-info">
+              <span class="name">{{ item.name }}</span>
+              <span class="percent">{{ item.percent }}%</span>
+            </div>
+          </div>
+
+          <div class="item-right">
+            <span class="amount">{{ item.amount.toLocaleString() }}원</span>
+          </div>
         </div>
       </div>
     </div>
@@ -141,10 +151,18 @@ const chartOptions = {
 </template>
 
 <style scoped>
-.category-view {
-  padding: 20px;
-  max-width: 400px;
-  margin: 0 auto;
+/* 페이지 전체 여백 설정 */
+.page-container {
+  padding-bottom: 20px;
+}
+
+/* 🌟 공통 흰색 박스 스타일 (달력 화면과 동일) */
+.white-box {
+  background-color: white;
+  border-radius: 16px;
+  padding: 24px 20px;
+  margin: 16px 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .controls {
@@ -172,7 +190,7 @@ const chartOptions = {
 }
 
 .type-toggle button.active {
-  background-color: var(--color-white);
+  background-color: var(--color-white, #ffffff);
   color: #333;
   font-weight: 500;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -182,13 +200,19 @@ const chartOptions = {
 .chart-wrapper {
   width: 100%;
   height: 25px;
-  margin-bottom: 40px;
+  margin-bottom: 10px;
 }
 
 .empty-text {
   text-align: center;
   color: #999;
-  margin: 40px 0;
+  margin: 20px 0;
+}
+
+/* 리스트 간격 및 스타일 */
+.list-box {
+  padding-top: 20px;
+  padding-bottom: 20px;
 }
 
 .category-list {
@@ -200,8 +224,6 @@ const chartOptions = {
 .list-item {
   display: flex;
   justify-content: space-between;
-  margin-left: 20px;
-  margin-right: 20px;
   align-items: center;
 }
 

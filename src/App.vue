@@ -5,6 +5,7 @@ import { computed } from 'vue';
 import { useUserStore } from '@/stores/userStore.js';
 import Header from './components/Header.vue';
 import TabBar from './components/TabBar.vue';
+import SummaryCard from './components/SummaryCard.vue'; // 추가
 import CommonButton from './components/common/CommonButton.vue';
 
 const router = useRouter();
@@ -20,8 +21,7 @@ const hideNavPaths = [
 
 const showNavigation = computed(() => {
   return (
-    isLogin.value &&
-    !hideNavPaths.some((path) => route.path.startsWith(path))
+    isLogin.value && !hideNavPaths.some((path) => route.path.startsWith(path))
   );
 });
 
@@ -38,6 +38,7 @@ const goTransactionCreate = () => {
     </div>
 
     <main :class="{ 'content-area': showNavigation }">
+      <SummaryCard v-if="showNavigation" />
       <router-view></router-view>
     </main>
 
@@ -54,37 +55,33 @@ const goTransactionCreate = () => {
 </template>
 
 <style scoped>
-/* 전체 화면 틀 */
 .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background-color: #f5f6f8; /* 사진처럼 카드가 돋보이도록 뒷배경 약간 회색으로 처리 */
 }
 
-/* ★ 상단 영역 고정 (스크롤해도 위에 붙어있게 하려면) */
 .top-navigation {
   position: sticky;
   top: 0;
   background-color: white;
   z-index: 100;
-  /* 필요하다면 여기에 그림자를 넣어 구분감을 줄 수 있습니다 */
-  /* box-shadow: 0 2px 5px rgba(0,0,0,0.05); */
+  /* 탭바 하단에만 아주 옅은 선을 그어 구분감 부여 */
+  border-bottom: 1px solid #eee;
 }
 
-/* 내용물 여백 설정 */
 .content-area {
   flex: 1;
-  /* 하단에 버튼이 있으니 버튼이 가리지 않게 여백을 줍니다 */
   padding-bottom: 80px;
 }
 
-/* 하단 버튼 영역 고정 */
 .bottom-navigation {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  background-color: white;
+  background-color: transparent; /* 버튼 배경은 하얀색으로 통일 */
   z-index: 100;
 }
 
@@ -96,7 +93,7 @@ const goTransactionCreate = () => {
   display: block;
   width: 100%;
   padding: 12px;
-  background-color: #42b983;
+  background-color: var(--color-yellow-light, #f1c40f); /* 노란색 톤 유지 */
   color: white;
   text-align: center;
   border-radius: 8px;
