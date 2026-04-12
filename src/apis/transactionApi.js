@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { normalizeCategoryKey } from '@/constants/categoryMeta';
 
 const BASE_URL = '/api/transactions';
 
@@ -7,9 +8,8 @@ export const createTransaction = async (data) => {
     const response = await axios.post(BASE_URL, data);
     return response.data;
   } catch (e) {
-    console.log('## 저장에 오류가 발생했습니다.');
-    if (e instanceof Error) console.log(e.message);
-    else console.log(e);
+    console.error('## 저장에 오류가 발생했습니다.', e);
+    throw new Error('거래 저장에 실패했습니다.');
   }
 };
 export const deleteTransaction = async (id) => {
@@ -17,9 +17,8 @@ export const deleteTransaction = async (id) => {
     const response = await axios.delete(`${BASE_URL}/${id}`);
     return response.data;
   } catch (e) {
-    console.log('삭제 중 오류가 발생하였습니다.');
-    if (e instanceof Error) console.log(e.message);
-    else console.log(e);
+    console.error('삭제 중 오류가 발생하였습니다.', e);
+    throw new Error('거래 삭제에 실패했습니다.');
   }
 };
 
@@ -33,7 +32,7 @@ export const getTransactionById = async (id) => {
     const response = await axios.get(`${BASE_URL}/${id}`);
     return response.data;
   } catch (err) {
-    alert(`getTransaction 호출 에러: ${err.message}`);
+    throw new Error(`거래내역 조회에 실패했습니다: ${err.message}`);
   }
 };
 
@@ -78,8 +77,6 @@ export const getTransactions = async (
       params['date_gte'] = startDate;
       params['date_lte'] = endDate;
     }
-    if (category.length) params.category_in = category;
-    if (type) params.type = type;
 
     const userIdCandidates = Array.from(
       new Set([userId, String(userId), Number(userId)].filter((value) => value !== '' && !Number.isNaN(value))),
@@ -99,9 +96,24 @@ export const getTransactions = async (
       new Map(merged.map((item) => [String(item.id), item])).values(),
     );
 
-    return sortLatestFirst(deduped);
+    const normalizedCategorySet = new Set(
+      category.map((item) => normalizeCategoryKey(item)),
+    );
+
+    const filtered = deduped.filter((item) => {
+      if (type && item.type !== type) return false;
+
+      if (normalizedCategorySet.size > 0) {
+        const itemCategory = normalizeCategoryKey(item.category);
+        if (!normalizedCategorySet.has(itemCategory)) return false;
+      }
+
+      return true;
+    });
+
+    return sortLatestFirst(filtered);
   } catch (err) {
-    alert(`거래내역 호출 에러: ${err.message}`);
+    throw new Error(`거래내역 조회에 실패했습니다: ${err.message}`);
   }
 };
 export const updateTransaction = async (id, newData) => {
@@ -111,6 +123,6 @@ export const updateTransaction = async (id, newData) => {
     const response = await axios.put(`${BASE_URL}/${id}`, payload);
     return response.data;
   } catch (err) {
-    alert(`거래 수정 에러: ${err.message}`);
+    throw new Error(`거래 수정에 실패했습니다: ${err.message}`);
   }
 };
