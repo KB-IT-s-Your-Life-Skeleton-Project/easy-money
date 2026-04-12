@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useMonthlyTransactionStore } from '@/stores/monthlyTranscationStore';
+import { formatLocalDate, formatLocalYearMonth } from '@/utils/date';
 
 const props = defineProps({
   items: {
@@ -19,6 +20,7 @@ const monthlyTransactionStore = useMonthlyTransactionStore();
 const { currentMonth } = storeToRefs(monthlyTransactionStore);
 
 const today = new Date();
+const todayString = formatLocalDate(today);
 
 /**
  * Date -> YYYY-MM-DD
@@ -38,14 +40,17 @@ const parseDate = (dateString) => {
 };
 
 const getDefaultDate = () => `${currentMonth.value}-01`;
+const getPreferredDate = () =>
+  currentMonth.value === formatLocalYearMonth(today)
+    ? todayString
+    : getDefaultDate();
 
-const selectedDate = ref(parseDate(props.modelValue || getDefaultDate()));
+const selectedDate = ref(parseDate(props.modelValue || getPreferredDate()));
 
 watch(
   () => props.modelValue,
   (value) => {
-    if (!value) return;
-    selectedDate.value = parseDate(value);
+    selectedDate.value = parseDate(value || getPreferredDate());
   },
 );
 
@@ -54,14 +59,9 @@ watch(
   (items) => {
     if (props.modelValue) return;
 
-    if (!items.length) {
-      selectedDate.value = parseDate(getDefaultDate());
-      emit('update:modelValue', '');
-      return;
-    }
-
-    selectedDate.value = parseDate(items[0].date);
-    emit('update:modelValue', items[0].date);
+    const preferredDate = getPreferredDate();
+    selectedDate.value = parseDate(preferredDate);
+    emit('update:modelValue', preferredDate);
   },
   { immediate: true },
 );
