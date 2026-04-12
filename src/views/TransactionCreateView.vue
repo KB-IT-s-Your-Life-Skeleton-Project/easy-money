@@ -1,11 +1,12 @@
 <script setup>
 import { ref, reactive, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useMonthlyTransactionStore } from '@/stores/monthlyTranscationStore';
 import CommonButton from '@/components/common/CommonButton.vue';
 import { formatLocalDate } from '@/utils/date';
 import { getCategoryLabel } from '@/constants/categoryMeta';
 
+const route = useRoute();
 const router = useRouter();
 const monthlyTransactionStore = useMonthlyTransactionStore();
 const incomeCategories = ['salary', 'allowance', 'extra'];
@@ -73,9 +74,46 @@ const submitTransaction = async () => {
   }
 
   try {
-    await monthlyTransactionStore.addTransaction({ ...transaction });
+    const created = await monthlyTransactionStore.addTransaction({ ...transaction });
+    const targetMonth = created.date.slice(0, 7);
+
+    if (monthlyTransactionStore.currentMonth !== targetMonth) {
+      await monthlyTransactionStore.setCurrentMonth(targetMonth);
+    } else {
+      await monthlyTransactionStore.fetchMonthTransactions();
+    }
+
     alert('작성 완료! ✨');
-    router.back();
+
+    const fromName =
+      typeof route.query.fromName === 'string' ? route.query.fromName : '';
+    const fromPath =
+      typeof route.query.from === 'string' ? route.query.from : '/calendar';
+
+    if (fromName === 'calendar' || fromPath === '/calendar') {
+      router.push({
+        path: '/calendar',
+        query: { selectedDate: created.date },
+      });
+      return;
+    }
+
+    if (fromName === 'transactions' || fromPath === '/transactions') {
+      router.push('/transactions');
+      return;
+    }
+
+    if (fromName === 'category' || fromPath === '/category') {
+      router.push('/category');
+      return;
+    }
+
+    if (fromName === 'chart' || fromPath === '/chart') {
+      router.push('/chart');
+      return;
+    }
+
+    router.push('/calendar');
   } catch (err) {
     alert(err.message || '거래 저장에 실패했습니다.');
   }

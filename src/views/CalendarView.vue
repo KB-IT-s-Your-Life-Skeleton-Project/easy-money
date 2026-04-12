@@ -1,11 +1,13 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
+import { useRoute } from "vue-router";
 import Calendar from "@/components/Calendar.vue";
 import TransactionList from "@/components/common/TransactionList.vue";
 import { useMonthlyTransactionStore } from "@/stores/monthlyTranscationStore";
 import { formatLocalDate, formatLocalYearMonth } from "@/utils/date";
 
+const route = useRoute();
 const transactionStore = useMonthlyTransactionStore();
 const { transactions, currentMonth } = storeToRefs(transactionStore);
 
@@ -14,6 +16,17 @@ const today = formatLocalDate();
 
 const getDefaultSelectedDate = () =>
   currentMonth.value === formatLocalYearMonth() ? today : `${currentMonth.value}-01`;
+
+const getRouteSelectedDate = () => {
+  const queryDate =
+    typeof route.query.selectedDate === "string" ? route.query.selectedDate : "";
+
+  if (queryDate && queryDate.startsWith(currentMonth.value)) {
+    return queryDate;
+  }
+
+  return "";
+};
 
 const formatDisplayDate = (dateString) => {
   if (!dateString) return "";
@@ -27,11 +40,11 @@ const formatDisplayDate = (dateString) => {
 
 onMounted(async () => {
   await transactionStore.fetchMonthTransactions();
-  selectedDate.value = getDefaultSelectedDate();
+  selectedDate.value = getRouteSelectedDate() || getDefaultSelectedDate();
 });
 
 watch(currentMonth, () => {
-  selectedDate.value = getDefaultSelectedDate();
+  selectedDate.value = getRouteSelectedDate() || getDefaultSelectedDate();
 });
 
 const selectedTransactions = computed(() => {

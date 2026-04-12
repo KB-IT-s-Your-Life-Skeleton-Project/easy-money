@@ -26,7 +26,13 @@ const showNavigation = computed(() => {
 });
 
 const goTransactionCreate = () => {
-  router.push('/transaction/create');
+  router.push({
+    path: '/transaction/create',
+    query: {
+      from: route.path,
+      fromName: typeof route.name === 'string' ? route.name : '',
+    },
+  });
 };
 </script>
 

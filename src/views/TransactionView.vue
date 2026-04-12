@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useRoute } from 'vue-router';
 import FilterBar from '@/components/FilterBar.vue';
 import FilterModal from '@/components/FilterModal.vue';
 import TransactionList from '@/components/common/TransactionList.vue';
@@ -9,6 +10,7 @@ import { getTransactions } from '@/apis/transactionApi';
 import { normalizeCategoryKey } from '@/constants/categoryMeta';
 import { formatLocalDate } from '@/utils/date';
 
+const route = useRoute();
 const userStore = useUserStore();
 const { loginUser } = storeToRefs(userStore);
 
@@ -89,6 +91,15 @@ const fetchTransactions = async () => {
 };
 
 onMounted(fetchTransactions);
+
+watch(
+  () => route.fullPath,
+  (newPath, oldPath) => {
+    if (newPath !== oldPath) {
+      fetchTransactions();
+    }
+  },
+);
 
 const handleFilter = (payload) => {
   filterOptions.value = payload;
