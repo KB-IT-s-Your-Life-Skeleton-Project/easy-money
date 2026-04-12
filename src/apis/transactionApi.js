@@ -1,24 +1,23 @@
-import axios from 'axios';
-import { normalizeCategoryKey } from '@/constants/categoryMeta';
+import api from "@/apis/index.js";
+import { normalizeCategoryKey } from "@/constants/categoryMeta";
 
-const BASE_URL = '/api/transactions';
-
+const BASE_URL = "/transactions";
 export const createTransaction = async (data) => {
   try {
-    const response = await axios.post(BASE_URL, data);
+    const response = await api.post(BASE_URL, data);
     return response.data;
   } catch (e) {
-    console.error('## 저장에 오류가 발생했습니다.', e);
-    throw new Error('거래 저장에 실패했습니다.');
+    console.error("## 저장에 오류가 발생했습니다.", e);
+    throw new Error("거래 저장에 실패했습니다.");
   }
 };
 export const deleteTransaction = async (id) => {
   try {
-    const response = await axios.delete(`${BASE_URL}/${id}`);
+    const response = await api.delete(`${BASE_URL}/${id}`);
     return response.data;
   } catch (e) {
-    console.error('삭제 중 오류가 발생하였습니다.', e);
-    throw new Error('거래 삭제에 실패했습니다.');
+    console.error("삭제 중 오류가 발생하였습니다.", e);
+    throw new Error("거래 삭제에 실패했습니다.");
   }
 };
 
@@ -29,7 +28,7 @@ export const deleteTransaction = async (id) => {
  */
 export const getTransactionById = async (id) => {
   try {
-    const response = await axios.get(`${BASE_URL}/${id}`);
+    const response = await api.get(`${BASE_URL}/${id}`);
     return response.data;
   } catch (err) {
     throw new Error(`거래내역 조회에 실패했습니다: ${err.message}`);
@@ -58,7 +57,7 @@ export const getTransactions = async (
   userId,
   { date, startDate, endDate, category = [], type } = {},
 ) => {
-  if (!userId) throw new Error('userId는 필수입니다.');
+  if (!userId) throw new Error("userId는 필수입니다.");
 
   const sortLatestFirst = (items) =>
     [...items].sort((a, b) => {
@@ -74,17 +73,21 @@ export const getTransactions = async (
     const params = {};
     if (date) params.date = date;
     if (startDate && endDate) {
-      params['date_gte'] = startDate;
-      params['date_lte'] = endDate;
+      params["date_gte"] = startDate;
+      params["date_lte"] = endDate;
     }
 
     const userIdCandidates = Array.from(
-      new Set([userId, String(userId), Number(userId)].filter((value) => value !== '' && !Number.isNaN(value))),
+      new Set(
+        [userId, String(userId), Number(userId)].filter(
+          (value) => value !== "" && !Number.isNaN(value),
+        ),
+      ),
     );
 
     const responses = await Promise.all(
       userIdCandidates.map((candidate) =>
-        axios.get(BASE_URL, { params: { ...params, userId: candidate } }),
+        api.get(BASE_URL, { params: { ...params, userId: candidate } }),
       ),
     );
 
@@ -120,7 +123,7 @@ export const updateTransaction = async (id, newData) => {
   try {
     const transaction = await getTransactionById(id);
     const payload = { ...transaction, ...newData };
-    const response = await axios.put(`${BASE_URL}/${id}`, payload);
+    const response = await api.put(`${BASE_URL}/${id}`, payload);
     return response.data;
   } catch (err) {
     throw new Error(`거래 수정에 실패했습니다: ${err.message}`);
