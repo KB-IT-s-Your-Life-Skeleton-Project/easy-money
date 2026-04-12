@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "json-server --watch db.json --port 10000 --host 0.0.0.0"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
     "axios": "^1.15.0",
     "chart.js": "^4.5.1",
+    "json-server": "^0.17.4",
     "pinia": "^3.0.4",
     "v-calendar": "^3.1.2",
     "vue": "^3.5.31",
