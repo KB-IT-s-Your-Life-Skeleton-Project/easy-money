@@ -19,8 +19,8 @@ const periods = [
 
 const types = [
   { key: "all", label: "전체" },
-  { key: "income", label: "입금" },
-  { key: "expense", label: "출금" },
+  { key: "income", label: "수입" },
+  { key: "expense", label: "지출" },
 ];
 
 const expenseCategories = [
@@ -28,18 +28,18 @@ const expenseCategories = [
   { key: "fixed", label: "고정 지출" },
   { key: "food", label: "식비" },
   { key: "shopping", label: "쇼핑" },
-  { key: "culture", label: "문화 생활" },
-  { key: "health", label: "의료·건강" },
-  { key: "transport", label: "교통" },
+  { key: "entertainment", label: "문화 생활" },
+  { key: "healthcare", label: "의료·건강" },
+  { key: "transportation", label: "교통" },
   { key: "education", label: "교육" },
-  { key: "etc", label: "기타" },
+  { key: "others", label: "기타" },
 ];
 
 const incomeCategories = [
   { key: "all", label: "전체" },
   { key: "salary", label: "급여" },
   { key: "allowance", label: "용돈" },
-  { key: "extra", label: "부가수입" },
+  { key: "extra", label: "기타 수입" },
 ];
 
 const now = new Date();
@@ -63,6 +63,8 @@ const typeKeysByLabel = {
   전체: "all",
   입금: "income",
   출금: "expense",
+  수입: "income",
+  지출: "expense",
 };
 
 const yearOptions = computed(() =>
@@ -105,7 +107,9 @@ const areAllCategoriesSelected = computed(() => {
 });
 
 const selectCategory = (categoryKey) => {
-  const currentCategoryKeys = getCurrentCategories().map((category) => category.key);
+  const currentCategoryKeys = getCurrentCategories().map(
+    (category) => category.key,
+  );
 
   if (categoryKey === "all") {
     selectedCategories.value = areAllCategoriesSelected.value
@@ -259,9 +263,9 @@ const submit = () => {
 </template>
 <style scoped>
 .modal {
-  --filter-yellow: #f4c430;
-  --filter-yellow-deep: #cc9a00;
-  --filter-yellow-soft: #fff7d6;
+  --filter-yellow: var(--color-yellow-dark, #fcaf17);
+  --filter-yellow-deep: #c88400;
+  --filter-yellow-soft: #fff4cc;
 }
 
 .overlay {
@@ -346,9 +350,11 @@ const submit = () => {
 }
 
 .period-btn.active {
-  border-color: var(--color-yellow-dark);
+  background: var(--filter-yellow-soft);
+  border-color: var(--filter-yellow);
   color: #000;
   font-weight: 600;
+  box-shadow: 0 4px 10px rgba(252, 175, 23, 0.18);
 }
 
 /* 월별 선택 */
@@ -417,9 +423,11 @@ const submit = () => {
 }
 
 .type-btn.active {
-  border-color: var(--color-yellow-dark);
+  background: var(--filter-yellow-soft);
+  border-color: var(--filter-yellow);
   color: #000;
   font-weight: 600;
+  box-shadow: 0 4px 10px rgba(252, 175, 23, 0.18);
 }
 
 /* 카테고리 그리드 (지출: 3x3) */
@@ -449,14 +457,16 @@ const submit = () => {
 }
 
 .category-btn.active {
-  border-color: var(--color-yellow-dark);
+  background: var(--filter-yellow-soft);
+  border-color: var(--filter-yellow);
   color: #000;
   font-weight: 600;
+  box-shadow: 0 4px 10px rgba(252, 175, 23, 0.18);
 }
 
 .no-category {
   font-size: 13px;
-  color: #b59b3b;
+  color: var(--filter-yellow-deep);
   text-align: center;
   padding: 12px 0;
 }
@@ -465,18 +475,24 @@ const submit = () => {
 .submit-btn {
   width: 100%;
   padding: 16px;
-  background: #fff;
-  border: 1.5px solid var(--color-yellow-dark);
+  background: var(--filter-yellow);
+  border: 1.5px solid var(--filter-yellow);
   border-radius: 12px;
   font-size: 16px;
   font-weight: 700;
+  color: #111;
   cursor: pointer;
   margin-top: 8px;
-  transition: opacity 0.15s;
+  box-shadow: 0 8px 18px rgba(252, 175, 23, 0.24);
+  transition: opacity 0.15s, transform 0.15s;
 }
 
 .submit-btn:hover {
   opacity: 0.9;
+}
+
+.submit-btn:active {
+  transform: translateY(1px);
 }
 
 /* 트랜지션 */

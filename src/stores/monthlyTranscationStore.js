@@ -7,10 +7,11 @@ import {
   updateTransaction,
   deleteTransaction,
 } from '@/apis/transactionApi';
+import { formatLocalYearMonth } from '@/utils/date';
 
 export const useMonthlyTransactionStore = defineStore('transaction', () => {
   const userStore = useUserStore();
-  const currentMonth = ref(new Date().toISOString().slice(0, 7));
+  const currentMonth = ref(formatLocalYearMonth());
 
   const transactions = ref([]);
   const loading = ref(false);
