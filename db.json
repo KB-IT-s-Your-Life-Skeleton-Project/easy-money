@@ -34,17 +34,6 @@
   "transactions": [
     {
       "userId": 1,
-      "id": "1",
-      "type": "income",
-      "amount": 2500000,
-      "date": "2026-04-01",
-      "content": "정기 급여",
-      "category": "salary",
-      "memo": "고생했다 나 자신!",
-      "isIncluded": true
-    },
-    {
-      "userId": 1,
       "id": "2",
       "type": "expense",
       "amount": 12500,
@@ -7195,17 +7184,6 @@
     },
     {
       "userId": 1,
-      "id": "629",
-      "type": "income",
-      "amount": 150000,
-      "date": "2026-04-07",
-      "content": "캐시워크",
-      "category": "extra",
-      "memo": "부수입",
-      "isIncluded": false
-    },
-    {
-      "userId": 1,
       "id": "615",
       "type": "expense",
       "amount": 55000,
@@ -7247,6 +7225,39 @@
       "category": "culture",
       "memo": "힐링",
       "isIncluded": true
+    },
+    {
+      "userId": "3",
+      "type": "income",
+      "date": "2026-04-12",
+      "amount": 10000,
+      "content": "용돈",
+      "category": "allowance",
+      "memo": "할머니 용돈",
+      "isIncluded": true,
+      "id": "6J2iHrB"
+    },
+    {
+      "userId": "3",
+      "type": "expense",
+      "date": "2026-04-12",
+      "amount": 12000,
+      "content": "버거킹",
+      "category": "food",
+      "memo": "버거킹 최고",
+      "isIncluded": true,
+      "id": "fI2ndeB"
+    },
+    {
+      "userId": "3",
+      "type": "expense",
+      "date": "2026-05-20",
+      "amount": 5000,
+      "content": "기부",
+      "category": "others",
+      "memo": "",
+      "isIncluded": false,
+      "id": "g2NGUSh"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
