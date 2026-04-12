@@ -3,14 +3,26 @@ import { ref, reactive, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMonthlyTransactionStore } from '@/stores/monthlyTranscationStore';
 import CommonButton from '@/components/common/CommonButton.vue';
+import { formatLocalDate } from '@/utils/date';
+import { getCategoryLabel } from '@/constants/categoryMeta';
 
 const router = useRouter();
 const monthlyTransactionStore = useMonthlyTransactionStore();
+const incomeCategories = ['salary', 'allowance', 'extra'];
+const expenseCategories = [
+  'fixed',
+  'food',
+  'shopping',
+  'entertainment',
+  'healthcare',
+  'transportation',
+  'education',
+  'others',
+];
 
-// 1. 데이터 상태 정의 (화면에서는 한글을 들고 있습니다)
 const transaction = reactive({
   type: 'expense',
-  date: new Date().toISOString().substring(0, 10),
+  date: formatLocalDate(),
   amount: null,
   content: '',
   category: '',
@@ -30,14 +42,19 @@ const handleAmountInput = (e) => {
   transaction.amount = rawValue ? parseInt(rawValue, 10) : null;
 };
 
-// 4. 타입별 카테고리 (UI 노출용)
 const currentCategories = computed(() => {
-  return transaction.type === 'income'
-    ? ['급여', '용돈', '기타 수입']
-    : ['고정 지출', '식비', '쇼핑', '문화 생활', '의료·건강', '교통', '교육', '기타'];
+  return transaction.type === 'income' ? incomeCategories : expenseCategories;
 });
 
 const isCategoryMenuOpen = ref(false);
+
+const setTransactionType = (type) => {
+  if (transaction.type === type) return;
+
+  transaction.type = type;
+  transaction.category = '';
+  isCategoryMenuOpen.value = false;
+};
 
 const selectCategory = (cat) => {
   transaction.category = cat;
@@ -101,7 +118,7 @@ const submitTransaction = async () => {
           "
         ></div>
         <button
-          @click="transaction.type = 'income'"
+          @click="setTransactionType('income')"
           class="relative z-10 flex-1 flex items-center justify-center font-bold transition-colors duration-300"
           :class="
             transaction.type === 'income' ? 'text-green-600' : 'text-gray-400'
@@ -110,7 +127,7 @@ const submitTransaction = async () => {
           수입
         </button>
         <button
-          @click="transaction.type = 'expense'"
+          @click="setTransactionType('expense')"
           class="relative z-10 flex-1 flex items-center justify-center font-bold transition-colors duration-300"
           :class="
             transaction.type === 'expense' ? 'text-red-500' : 'text-gray-400'
@@ -197,7 +214,11 @@ const submitTransaction = async () => {
                   ? 'text-black text-lg'
                   : 'text-gray-300 text-lg'
               "
-              >{{ transaction.category || "카테고리를 선택해 주세요" }}</span
+              >{{
+                transaction.category
+                  ? getCategoryLabel(transaction.category)
+                  : "카테고리를 선택해 주세요"
+              }}</span
             >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -265,7 +286,7 @@ const submitTransaction = async () => {
                       : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
                   "
                 >
-                  {{ cat }}
+                  {{ getCategoryLabel(cat) }}
                 </button>
               </div>
             </div>
