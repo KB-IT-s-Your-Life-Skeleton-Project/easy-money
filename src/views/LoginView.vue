@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore.js';
 import CommonButton from '@/components/common/CommonButton.vue';
@@ -11,10 +11,26 @@ const email = ref('');
 const password = ref('');
 const saveId = ref(false);
 
+// 1. 화면이 켜질 때 로컬 스토리지에 저장된 아이디가 있는지 확인
+onMounted(() => {
+  const savedEmail = localStorage.getItem('savedEmail');
+  if (savedEmail) {
+    email.value = savedEmail; // 입력창에 이메일 채우기
+    saveId.value = true; // 아이디 저장 체크박스 켜기
+  }
+});
+
 const handleLogin = async () => {
   if (!email.value || !password.value) {
     alert('이메일과 비밀번호를 입력해주세요.');
     return;
+  }
+
+  // 2. 로그인 버튼을 누를 때 체크박스 상태에 따라 아이디 저장 또는 삭제
+  if (saveId.value) {
+    localStorage.setItem('savedEmail', email.value);
+  } else {
+    localStorage.removeItem('savedEmail');
   }
 
   await userStore.login(email.value, password.value);
@@ -32,13 +48,11 @@ const goFindPassword = () => {
 <template>
   <div class="login-page">
     <div class="phone-frame">
-      <!-- 로그인 헤더 -->
       <header class="brand-section">
         <img src="@/assets/logo.png" alt="Easy-Money 로고" class="logo-image" />
         <h1 class="brand-title">Easy-Money</h1>
       </header>
 
-      <!-- 로그인 폼 -->
       <div class="login-form">
         <div class="form-group">
           <label for="email">아이디</label>
@@ -191,7 +205,6 @@ const goFindPassword = () => {
 
 .btn-secondary {
   background: #ecd9a0;
-  /* color: var(--color-yellow-dark); */
   color: white;
 }
 

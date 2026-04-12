@@ -9,8 +9,9 @@ import { getTransactions } from '@/apis/transactionApi';
 const activeTab = ref('trend');
 const monthlyTransactionStore = useMonthlyTransactionStore();
 const userStore = useUserStore();
-const { currentMonth, monthlyIncome, monthlyExpense } =
-  storeToRefs(monthlyTransactionStore);
+const { currentMonth, monthlyIncome, monthlyExpense } = storeToRefs(
+  monthlyTransactionStore
+);
 
 const trendData = ref([]);
 const yoyIncome = ref({ thisYear: 0, lastYear: 0 });
@@ -34,7 +35,10 @@ const getMonthRange = (yearMonth) => {
 const shiftYearMonth = (yearMonth, delta) => {
   const [year, month] = yearMonth.split('-').map(Number);
   const date = new Date(year, month - 1 + delta, 1);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+    2,
+    '0'
+  )}`;
 };
 
 const sumByType = (items, type) =>
@@ -49,7 +53,7 @@ const fetchChartData = async () => {
   await monthlyTransactionStore.fetchMonthTransactions();
 
   const months = Array.from({ length: 6 }, (_, index) =>
-    shiftYearMonth(currentMonth.value, index - 5),
+    shiftYearMonth(currentMonth.value, index - 5)
   );
 
   const monthlyData = await Promise.all(
@@ -63,7 +67,7 @@ const fetchChartData = async () => {
         income: Math.round(sumByType(safeItems, 'income') / 10000),
         expense: Math.round(sumByType(safeItems, 'expense') / 10000),
       };
-    }),
+    })
   );
 
   trendData.value = monthlyData;
@@ -87,13 +91,17 @@ const fetchChartData = async () => {
 onMounted(fetchChartData);
 watch(currentMonth, fetchChartData);
 
-const currentMonthNumber = computed(() => Number(currentMonth.value.split('-')[1]));
+const currentMonthNumber = computed(() =>
+  Number(currentMonth.value.split('-')[1])
+);
 const allVals = computed(() =>
   trendData.value.length
     ? trendData.value.flatMap((d) => [d.income, d.expense])
-    : [0],
+    : [0]
 );
-const maxVal = computed(() => Math.max(50, Math.ceil(Math.max(...allVals.value) / 50) * 50));
+const maxVal = computed(() =>
+  Math.max(50, Math.ceil(Math.max(...allVals.value) / 50) * 50)
+);
 const minVal = computed(() => 0);
 
 const yGridLines = computed(() => {
@@ -114,9 +122,13 @@ const linePoints = (key) =>
   trendData.value.map((d, i) => `${xPos(i)},${yPos(d[key])}`).join(' ');
 
 const areaPath = (key) => {
-  const pts = trendData.value.map((d, i) => `${xPos(i)},${yPos(d[key])}`).join(' L ');
+  const pts = trendData.value
+    .map((d, i) => `${xPos(i)},${yPos(d[key])}`)
+    .join(' L ');
   const bottom = SVG_H - PAD_B;
-  return `M ${xPos(0)},${bottom} L ${pts} L ${xPos(trendData.value.length - 1)},${bottom} Z`;
+  return `M ${xPos(0)},${bottom} L ${pts} L ${xPos(
+    trendData.value.length - 1
+  )},${bottom} Z`;
 };
 
 const yoyBarWidth = (thisYear, lastYear) =>
@@ -124,180 +136,204 @@ const yoyBarWidth = (thisYear, lastYear) =>
 </script>
 
 <template>
-  <div class="chart-page">
-    <div class="month-selector-wrap">
-      <MonthSelector />
-    </div>
-    <div class="toggle-wrap">
-      <button
-        class="toggle-btn"
-        :class="{ active: activeTab === 'trend' }"
-        @click="activeTab = 'trend'"
-      >
-        최근 6개월
-      </button>
-      <button
-        class="toggle-btn"
-        :class="{ active: activeTab === 'yoy' }"
-        @click="activeTab = 'yoy'"
-      >
-        작년 비교
-      </button>
-    </div>
-
-    <Transition name="fade" mode="out-in">
-      <div v-if="activeTab === 'trend'" key="trend" class="chart-wrap">
-        <div class="chart-legend">
-          <span class="legend-line income" />수입
-          <span class="legend-line expense" style="margin-left: 16px" />지출
-        </div>
-
-        <div class="svg-wrap" v-if="trendData.length">
-          <svg
-            :viewBox="`0 0 ${SVG_W} ${SVG_H}`"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <line
-              v-for="y in yGridLines"
-              :key="y"
-              :x1="PAD_L"
-              :y1="yPos(y)"
-              :x2="SVG_W - PAD_R"
-              :y2="yPos(y)"
-              stroke="#f0f0f0"
-              stroke-width="1"
-            />
-            <text
-              v-for="y in yGridLines"
-              :key="'lbl' + y"
-              :x="PAD_L - 6"
-              :y="yPos(y) + 4"
-              text-anchor="end"
-              font-size="9"
-              fill="#bbb"
-            >
-              {{ y }}
-            </text>
-
-            <path :d="areaPath('income')" fill="rgba(74,144,217,0.08)" />
-            <path :d="areaPath('expense')" fill="rgba(245,166,35,0.08)" />
-
-            <polyline
-              :points="linePoints('income')"
-              fill="none"
-              stroke="#4a90d9"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <polyline
-              :points="linePoints('expense')"
-              fill="none"
-              stroke="#f5a623"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-
-            <circle
-              v-for="(d, i) in trendData"
-              :key="'ic' + i"
-              :cx="xPos(i)"
-              :cy="yPos(d.income)"
-              r="3.5"
-              fill="#4a90d9"
-            />
-            <circle
-              v-for="(d, i) in trendData"
-              :key="'ec' + i"
-              :cx="xPos(i)"
-              :cy="yPos(d.expense)"
-              r="3.5"
-              fill="#f5a623"
-            />
-
-            <text
-              v-for="(d, i) in trendData"
-              :key="'xl' + i"
-              :x="xPos(i)"
-              :y="SVG_H - 4"
-              text-anchor="middle"
-              font-size="10"
-              fill="#aaa"
-            >
-              {{ d.month }}
-            </text>
-          </svg>
-        </div>
-        <p class="unit-label">단위: 만원</p>
+  <div class="page-container">
+    <div class="white-box">
+      <div class="month-selector-wrap">
+        <MonthSelector />
       </div>
 
-      <div v-else key="yoy" class="chart-wrap">
-        <p class="yoy-title">{{ currentMonthNumber }}월 올해 vs 작년</p>
-
-        <div class="yoy-section">
-          <p class="yoy-section-label">수입</p>
-          <div class="yoy-cards">
-            <div class="yoy-card this-year">
-              <span class="yoy-card-year">올해 {{ currentMonthNumber }}월</span>
-              <span class="yoy-card-amount income-color">
-                {{ yoyIncome.thisYear }}만원
-              </span>
-            </div>
-            <div class="yoy-vs">VS</div>
-            <div class="yoy-card last-year">
-              <span class="yoy-card-year">작년 {{ currentMonthNumber }}월</span>
-              <span class="yoy-card-amount muted-color">
-                {{ yoyIncome.lastYear }}만원
-              </span>
-            </div>
-          </div>
-          <div class="yoy-bar-bg">
-            <div
-              class="yoy-bar-fill income-bg"
-              :style="{ width: yoyBarWidth(yoyIncome.thisYear, yoyIncome.lastYear) }"
-            />
-          </div>
-        </div>
-
-        <div class="yoy-divider" />
-
-        <div class="yoy-section">
-          <p class="yoy-section-label">지출</p>
-          <div class="yoy-cards">
-            <div class="yoy-card this-year">
-              <span class="yoy-card-year">올해 {{ currentMonthNumber }}월</span>
-              <span class="yoy-card-amount expense-color">
-                {{ yoyExpense.thisYear }}만원
-              </span>
-            </div>
-            <div class="yoy-vs">VS</div>
-            <div class="yoy-card last-year">
-              <span class="yoy-card-year">작년 {{ currentMonthNumber }}월</span>
-              <span class="yoy-card-amount muted-color">
-                {{ yoyExpense.lastYear }}만원
-              </span>
-            </div>
-          </div>
-          <div class="yoy-bar-bg">
-            <div
-              class="yoy-bar-fill expense-bg"
-              :style="{ width: yoyBarWidth(yoyExpense.thisYear, yoyExpense.lastYear) }"
-            />
-          </div>
-        </div>
+      <div class="toggle-wrap">
+        <button
+          class="toggle-btn"
+          :class="{ active: activeTab === 'trend' }"
+          @click="activeTab = 'trend'"
+        >
+          최근 6개월
+        </button>
+        <button
+          class="toggle-btn"
+          :class="{ active: activeTab === 'yoy' }"
+          @click="activeTab = 'yoy'"
+        >
+          작년 비교
+        </button>
       </div>
-    </Transition>
+
+      <Transition name="fade" mode="out-in">
+        <div v-if="activeTab === 'trend'" key="trend" class="chart-content">
+          <div class="chart-legend">
+            <span class="legend-line income" />수입
+            <span class="legend-line expense" style="margin-left: 16px" />지출
+          </div>
+
+          <div class="svg-wrap" v-if="trendData.length">
+            <svg
+              :viewBox="`0 0 ${SVG_W} ${SVG_H}`"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <line
+                v-for="y in yGridLines"
+                :key="y"
+                :x1="PAD_L"
+                :y1="yPos(y)"
+                :x2="SVG_W - PAD_R"
+                :y2="yPos(y)"
+                stroke="#f0f0f0"
+                stroke-width="1"
+              />
+              <text
+                v-for="y in yGridLines"
+                :key="'lbl' + y"
+                :x="PAD_L - 6"
+                :y="yPos(y) + 4"
+                text-anchor="end"
+                font-size="9"
+                fill="#bbb"
+              >
+                {{ y }}
+              </text>
+
+              <path :d="areaPath('income')" fill="rgba(74,144,217,0.08)" />
+              <path :d="areaPath('expense')" fill="rgba(245,166,35,0.08)" />
+
+              <polyline
+                :points="linePoints('income')"
+                fill="none"
+                stroke="#4a90d9"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <polyline
+                :points="linePoints('expense')"
+                fill="none"
+                stroke="#f5a623"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+
+              <circle
+                v-for="(d, i) in trendData"
+                :key="'ic' + i"
+                :cx="xPos(i)"
+                :cy="yPos(d.income)"
+                r="3.5"
+                fill="#4a90d9"
+              />
+              <circle
+                v-for="(d, i) in trendData"
+                :key="'ec' + i"
+                :cx="xPos(i)"
+                :cy="yPos(d.expense)"
+                r="3.5"
+                fill="#f5a623"
+              />
+
+              <text
+                v-for="(d, i) in trendData"
+                :key="'xl' + i"
+                :x="xPos(i)"
+                :y="SVG_H - 4"
+                text-anchor="middle"
+                font-size="10"
+                fill="#aaa"
+              >
+                {{ d.month }}
+              </text>
+            </svg>
+          </div>
+          <p class="unit-label">단위: 만원</p>
+        </div>
+
+        <div v-else key="yoy" class="chart-content">
+          <p class="yoy-title">{{ currentMonthNumber }}월 올해 vs 작년</p>
+
+          <div class="yoy-section">
+            <p class="yoy-section-label">수입</p>
+            <div class="yoy-cards">
+              <div class="yoy-card this-year">
+                <span class="yoy-card-year"
+                  >올해 {{ currentMonthNumber }}월</span
+                >
+                <span class="yoy-card-amount income-color">
+                  {{ yoyIncome.thisYear }}만원
+                </span>
+              </div>
+              <div class="yoy-vs">VS</div>
+              <div class="yoy-card last-year">
+                <span class="yoy-card-year"
+                  >작년 {{ currentMonthNumber }}월</span
+                >
+                <span class="yoy-card-amount muted-color">
+                  {{ yoyIncome.lastYear }}만원
+                </span>
+              </div>
+            </div>
+            <div class="yoy-bar-bg">
+              <div
+                class="yoy-bar-fill income-bg"
+                :style="{
+                  width: yoyBarWidth(yoyIncome.thisYear, yoyIncome.lastYear),
+                }"
+              />
+            </div>
+          </div>
+
+          <div class="yoy-divider" />
+
+          <div class="yoy-section">
+            <p class="yoy-section-label">지출</p>
+            <div class="yoy-cards">
+              <div class="yoy-card this-year">
+                <span class="yoy-card-year"
+                  >올해 {{ currentMonthNumber }}월</span
+                >
+                <span class="yoy-card-amount expense-color">
+                  {{ yoyExpense.thisYear }}만원
+                </span>
+              </div>
+              <div class="yoy-vs">VS</div>
+              <div class="yoy-card last-year">
+                <span class="yoy-card-year"
+                  >작년 {{ currentMonthNumber }}월</span
+                >
+                <span class="yoy-card-amount muted-color">
+                  {{ yoyExpense.lastYear }}만원
+                </span>
+              </div>
+            </div>
+            <div class="yoy-bar-bg">
+              <div
+                class="yoy-bar-fill expense-bg"
+                :style="{
+                  width: yoyBarWidth(yoyExpense.thisYear, yoyExpense.lastYear),
+                }"
+              />
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.chart-page {
-  padding: 20px 16px;
-  background: #f8f9fb;
-  min-height: 100vh;
+/* 앱 전체 배경색은 App.vue에서 처리하므로 투명하게 둡니다 */
+.page-container {
+  padding-bottom: 20px;
   font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
 }
+
+/* 🌟 공통 흰색 박스 스타일 */
+.white-box {
+  background-color: white;
+  border-radius: 16px;
+  padding: 24px 20px;
+  margin: 16px 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
 .month-selector-wrap {
   display: flex;
   justify-content: center;
@@ -306,10 +342,10 @@ const yoyBarWidth = (thisYear, lastYear) =>
 
 .toggle-wrap {
   display: flex;
-  background: #e8edf2;
+  background: #f5f5f5; /* 흰 배경에 어울리도록 살짝 밝은 회색으로 변경 */
   border-radius: 10px;
   padding: 3px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 .toggle-btn {
   flex: 1;
@@ -330,11 +366,8 @@ const yoyBarWidth = (thisYear, lastYear) =>
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
-.chart-wrap {
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px 16px 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+.chart-content {
+  /* 내부 차트 영역은 추가 여백 없이 사용합니다 */
 }
 
 .chart-legend {
@@ -464,9 +497,7 @@ const yoyBarWidth = (thisYear, lastYear) =>
 
 .fade-enter-active,
 .fade-leave-active {
-  transition:
-    opacity 0.2s,
-    transform 0.2s;
+  transition: opacity 0.2s, transform 0.2s;
 }
 .fade-enter-from {
   opacity: 0;

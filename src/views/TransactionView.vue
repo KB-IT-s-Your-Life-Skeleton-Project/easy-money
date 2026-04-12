@@ -97,8 +97,8 @@ const filteredTransactions = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen no-scrollbar bg-gray-50 pb-24">
-    <section class="px-6 py-4">
+  <div class="min-h-screen no-scrollbar bg-[#f5f6f8] pb-24">
+    <section class="px-6 pt-0 pb-2">
       <FilterBar
         :period="filterPeriod"
         :type="filterType"
@@ -129,5 +129,12 @@ const filteredTransactions = computed(() => {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.white-box {
+  background-color: white;
+  border-radius: 16px;
+  margin: 0 20px 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 </style>
