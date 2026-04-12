@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHashHistory } from 'vue-router';
 import { useUserStore } from '@/stores/userStore.js';
 
 import LoginView from '../views/LoginView.vue';
@@ -12,7 +12,7 @@ import ProfileEditView from '@/views/ProfileEditView.vue';
 import TransactionDetailView from '@/views/TransactionDetailView.vue';
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes: [
     { path: '/login', name: 'login', component: LoginView },
     { path: '/signup', name: 'signup', component: SignupView },

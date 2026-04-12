@@ -2,7 +2,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '@/apis/index.js';
 import {
   login as apiLogin,
   signin as apiSignin,
@@ -56,9 +56,9 @@ export const useUserStore = defineStore('user', () => {
   const signup = async (userData) => {
     try {
       // 1) 이메일 중복 체크
-      const checkResponse = await axios.get(
-        `/api/users?email=${userData.email}`
-      );
+      const checkResponse = await api.get('/users', {
+        params: { email: userData.email },
+      });
 
       if (checkResponse.data.length > 0) {
         alert('이미 가입된 이메일입니다. 다른 이메일을 사용해주세요.');
