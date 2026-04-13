@@ -1,8 +1,8 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
-import Calendar from "@/components/Calendar.vue";
-import TransactionList from "@/components/common/TransactionList.vue";
+import Calendar from "@/components/calendar/Calendar.vue";
+import TransactionList from "@/components/transaction/TransactionList.vue";
 import { useMonthlyTransactionStore } from "@/stores/monthlyTranscationStore";
 import { formatLocalDate, formatLocalYearMonth } from "@/utils/date";
 
