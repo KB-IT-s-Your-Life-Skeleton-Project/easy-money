@@ -1,9 +1,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { storeToRefs } from 'pinia';
-import FilterBar from '@/components/FilterBar.vue';
-import FilterModal from '@/components/FilterModal.vue';
-import TransactionList from '@/components/common/TransactionList.vue';
+import FilterBar from '@/components/transaction/FilterBar.vue';
+import FilterModal from '@/components/transaction/FilterModal.vue';
+import TransactionList from '@/components/transaction/TransactionList.vue';
 import { useUserStore } from '@/stores/userStore';
 import { getTransactions } from '@/apis/transactionApi';
 import { normalizeCategoryKey } from '@/constants/categoryMeta';

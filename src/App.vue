@@ -3,9 +3,9 @@ import { storeToRefs } from 'pinia';
 import { useRouter, useRoute } from 'vue-router';
 import { computed } from 'vue';
 import { useUserStore } from '@/stores/userStore.js';
-import Header from './components/Header.vue';
-import TabBar from './components/TabBar.vue';
-import SummaryCard from './components/SummaryCard.vue'; // 추가
+import Header from './components/common/Header.vue';
+import TabBar from './components/common/TabBar.vue';
+import SummaryCard from './components/transaction/SummaryCard.vue';
 import CommonButton from './components/common/CommonButton.vue';
 
 const router = useRouter();
