@@ -15,6 +15,7 @@
     "chart.js": "^4.5.1",
     "json-server": "^0.17.4",
     "pinia": "^3.0.4",
+    "pinia-plugin-persistedstate": "^4.7.1",
     "v-calendar": "^3.1.2",
     "vue": "^3.5.31",
     "vue-chartjs": "^5.3.3",
