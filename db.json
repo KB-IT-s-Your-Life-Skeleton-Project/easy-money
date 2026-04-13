@@ -242,116 +242,6 @@
       "isIncluded": true
     },
     {
-      "userId": 1,
-      "id": "21",
-      "type": "expense",
-      "amount": 12000,
-      "date": "2026-04-12",
-      "content": "카페",
-      "category": "food",
-      "memo": "카공",
-      "isIncluded": true
-    },
-    {
-      "userId": 1,
-      "id": "22",
-      "type": "expense",
-      "amount": 3500,
-      "date": "2026-04-13",
-      "content": "버스",
-      "category": "transport",
-      "memo": "외근",
-      "isIncluded": true
-    },
-    {
-      "userId": 1,
-      "id": "23",
-      "type": "expense",
-      "amount": 11000,
-      "date": "2026-04-14",
-      "content": "중국집",
-      "category": "food",
-      "memo": "짜장면",
-      "isIncluded": true
-    },
-    {
-      "userId": 1,
-      "id": "24",
-      "type": "expense",
-      "amount": 60000,
-      "date": "2026-04-15",
-      "content": "주유소",
-      "category": "transport",
-      "memo": "기름 가득",
-      "isIncluded": true
-    },
-    {
-      "userId": 1,
-      "id": "25",
-      "type": "expense",
-      "amount": 5000,
-      "date": "2026-04-16",
-      "content": "다이소",
-      "category": "shopping",
-      "memo": "청소도구",
-      "isIncluded": true
-    },
-    {
-      "userId": 1,
-      "id": "26",
-      "type": "income",
-      "amount": 30000,
-      "date": "2026-04-17",
-      "content": "친구 송금",
-      "category": "extra",
-      "memo": "더치페이 정산",
-      "isIncluded": true
-    },
-    {
-      "userId": 1,
-      "id": "27",
-      "type": "expense",
-      "amount": 25000,
-      "date": "2026-04-18",
-      "content": "미용실",
-      "category": "health",
-      "memo": "커트",
-      "isIncluded": true
-    },
-    {
-      "userId": 1,
-      "id": "28",
-      "type": "expense",
-      "amount": 90000,
-      "date": "2026-04-19",
-      "content": "백화점",
-      "category": "shopping",
-      "memo": "선물",
-      "isIncluded": true
-    },
-    {
-      "userId": 1,
-      "id": "29",
-      "type": "expense",
-      "amount": 1500,
-      "date": "2026-04-20",
-      "content": "자판기",
-      "category": "food",
-      "memo": "음료수",
-      "isIncluded": true
-    },
-    {
-      "userId": 1,
-      "id": "30",
-      "type": "expense",
-      "amount": 7500,
-      "date": "2026-04-21",
-      "content": "분식집",
-      "category": "food",
-      "memo": "떡볶이",
-      "isIncluded": true
-    },
-    {
       "userId": "gV5CJFY",
       "type": "expense",
       "date": "2026-04-11",
@@ -7247,17 +7137,6 @@
       "memo": "버거킹 최고",
       "isIncluded": true,
       "id": "fI2ndeB"
-    },
-    {
-      "userId": "3",
-      "type": "expense",
-      "date": "2026-05-20",
-      "amount": 5000,
-      "content": "기부",
-      "category": "others",
-      "memo": "",
-      "isIncluded": false,
-      "id": "g2NGUSh"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
