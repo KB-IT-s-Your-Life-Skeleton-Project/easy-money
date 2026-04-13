@@ -90,9 +90,9 @@ const goFindPassword = () => {
           @click="goSignup"
         />
 
-        <button type="button" class="text-button" @click="goFindPassword">
+        <!-- <button type="button" class="text-button" @click="goFindPassword">
           비밀번호 찾기
-        </button>
+        </button> -->
       </div>
     </div>
   </div>
